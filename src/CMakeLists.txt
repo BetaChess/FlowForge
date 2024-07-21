@@ -3,10 +3,21 @@ cmake_minimum_required(VERSION 3.20)
 project(flowforge_lib)
 
 set(SOURCES
-    pch.hpp
-    ../include/flowforge.hpp
-    logging/logger.hpp
-    logging/logger.cpp
+        pch.hpp
+        ../include/flowforge.hpp
+        logging/logger.hpp
+        logging/logger.cpp
+        glfw_context.hpp
+        glfw_context.cpp
+        vulkan/instance.hpp
+        vulkan/handle.hpp
+        vulkan/instance.cpp
+        vulkan/device.hpp
+        vulkan/device.cpp
+        vulkan/surface.hpp
+        vulkan/surface.cpp
+        vulkan/window.hpp
+        vulkan/window.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})

@@ -12,8 +12,8 @@ void Logger::init()
 	spdlog::set_pattern("%^[%T](%s:%#) %n[%l]: %v%$");
 	core_logger_s = spdlog::stdout_color_mt("FLOWFORGE");
 	core_logger_s->set_level(spdlog::level::trace);
-	
+
 	FLOWFORGE_INFO("Logger initialized successfully");
 }
-	
-}
+
+}// namespace flwfrg
