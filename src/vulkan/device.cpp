@@ -28,6 +28,23 @@ Device::~Device()
 	FLOWFORGE_INFO("Logical device destroyed");
 }
 
+int32_t Device::find_memory_index(uint32_t type_filter, VkMemoryPropertyFlags memory_flags) const
+{
+	VkPhysicalDeviceMemoryProperties memory_properties;
+	vkGetPhysicalDeviceMemoryProperties(physical_device_, &memory_properties);
+
+	for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++)
+	{
+		if ((type_filter & (1 << i)) && (memory_properties.memoryTypes[i].propertyFlags & memory_flags) == memory_flags)
+		{
+			return static_cast<int32_t>(i);
+		}
+	}
+
+	FLOWFORGE_WARN("Unable to find suitable memory type");
+	return -1;
+}
+
 void Device::pick_physical_device()
 {
 	assert(instance_->handle() != VK_NULL_HANDLE);

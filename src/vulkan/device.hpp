@@ -91,6 +91,8 @@ public:
 	[[nodiscard]] VkCommandPool get_graphics_command_pool() const { return graphics_command_pool_; };
 	[[nodiscard]] VkPhysicalDeviceProperties get_physical_device_properties() const { return physical_device_properties_; };
 
+	[[nodiscard]] int32_t find_memory_index(uint32_t type_filter, VkMemoryPropertyFlags memory_flags) const;
+
 private:
 	Instance *instance_ = nullptr;
 	Surface *surface_ = nullptr;
