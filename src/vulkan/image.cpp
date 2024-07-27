@@ -90,7 +90,7 @@ Image::Image(
 
 	if (create_view)
 	{
-		create_view(format, aspect_flags);
+		view_create(format, aspect_flags);
 	}
 }
 
@@ -179,7 +179,7 @@ void Image::copy_from_buffer(CommandBuffer &command_buffer, Buffer &buffer)
 			1,
 			&region);
 }
-void Image::create_view(VkFormat format, VkImageAspectFlags aspect_flags)
+void Image::view_create(VkFormat format, VkImageAspectFlags aspect_flags)
 {
 	VkImageViewCreateInfo view_info{};
 	view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

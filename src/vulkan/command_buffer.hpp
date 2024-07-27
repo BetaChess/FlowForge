@@ -4,6 +4,7 @@
 namespace flwfrg::vk
 {
 class Device;
+class RenderPass;
 
 class CommandBuffer
 {
@@ -48,6 +49,8 @@ private:
 	VkCommandPool pool_handle_{VK_NULL_HANDLE};
 
 	State state_{State::NOT_ALLOCATED};
+
+	friend RenderPass;
 };
 
 }

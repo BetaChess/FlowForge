@@ -56,7 +56,7 @@ private:
 	uint32_t width_ = 0;
 	uint32_t height_ = 0;
 
-	void create_view(VkFormat format, VkImageAspectFlags aspect_flags);
+	void view_create(VkFormat format, VkImageAspectFlags aspect_flags);
 };
 
 }// namespace flwfrg::vk

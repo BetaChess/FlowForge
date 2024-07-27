@@ -18,6 +18,20 @@ set(SOURCES
         vulkan/surface.cpp
         vulkan/window.hpp
         vulkan/window.cpp
+        vulkan/swapchain.hpp
+        vulkan/swapchain.cpp
+        vulkan/image.hpp
+        vulkan/image.cpp
+        vulkan/buffer.hpp
+        vulkan/buffer.cpp
+        vulkan/command_buffer.hpp
+        vulkan/command_buffer.cpp
+        vulkan/frame_buffer.hpp
+        vulkan/frame_buffer.cpp
+        vulkan/render_pass.hpp
+        vulkan/render_pass.cpp
+        vulkan/display_context.hpp
+        vulkan/display_context.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
@@ -38,6 +52,7 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC $ENV{VULKAN_SDK}/include/
         PUBLIC ../vendor/glfw/include/
         PUBLIC ../vendor/spdlog/include/
+        PUBLIC ../vendor/glm
 )
 
 target_link_directories(${PROJECT_NAME}

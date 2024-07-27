@@ -28,6 +28,12 @@ Device::~Device()
 	FLOWFORGE_INFO("Logical device destroyed");
 }
 
+const SwapchainSupportDetails &Device::update_swapchain_support_details()
+{
+	swapchain_support_ = query_swapchain_support();
+	return swapchain_support_;
+}
+
 int32_t Device::find_memory_index(uint32_t type_filter, VkMemoryPropertyFlags memory_flags) const
 {
 	VkPhysicalDeviceMemoryProperties memory_properties;

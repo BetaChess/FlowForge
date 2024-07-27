@@ -12,6 +12,7 @@ namespace flwfrg::vk
 {
 class Instance;
 class Surface;
+class Swapchain;
 
 struct PhysicalDeviceRequirements {
 	bool graphics = true;
@@ -71,25 +72,29 @@ public:
 	Device(Instance *instance, Surface *surface, PhysicalDeviceRequirements requirements = {});
 	~Device();
 
-	[[nodiscard]] VkQueue get_present_queue() const { return present_queue_; };
-	[[nodiscard]] VkQueue get_graphics_queue() const { return graphics_queue_; };
-	[[nodiscard]] VkQueue get_transfer_queue() const { return transfer_queue_; };
+	[[nodiscard]] inline VkQueue get_present_queue() const { return present_queue_; };
+	[[nodiscard]] inline VkQueue get_graphics_queue() const { return graphics_queue_; };
+	[[nodiscard]] inline VkQueue get_transfer_queue() const { return transfer_queue_; };
 
-	[[nodiscard]] uint32_t get_graphics_queue_index() const { return graphics_queue_index_.value(); };
-	[[nodiscard]] uint32_t get_present_queue_index() const { return present_queue_index_.value(); };
-	[[nodiscard]] uint32_t get_transfer_queue_index() const { return transfer_queue_index_.value(); };
-	[[nodiscard]] uint32_t get_compute_queue_index() const { return compute_queue_index_.value(); };
+	[[nodiscard]] inline uint32_t get_graphics_queue_index() const { return graphics_queue_index_.value(); };
+	[[nodiscard]] inline uint32_t get_present_queue_index() const { return present_queue_index_.value(); };
+	[[nodiscard]] inline uint32_t get_transfer_queue_index() const { return transfer_queue_index_.value(); };
+	[[nodiscard]] inline uint32_t get_compute_queue_index() const { return compute_queue_index_.value(); };
 
-	[[nodiscard]] bool has_graphics_queue() const { return graphics_queue_index_.has_value(); };
-	[[nodiscard]] bool has_present_queue() const { return present_queue_index_.has_value(); };
-	[[nodiscard]] bool has_transfer_queue() const { return transfer_queue_index_.has_value(); };
-	[[nodiscard]] bool has_compute_queue() const { return compute_queue_index_.has_value(); };
+	[[nodiscard]] inline bool has_graphics_queue() const { return graphics_queue_index_.has_value(); };
+	[[nodiscard]] inline bool has_present_queue() const { return present_queue_index_.has_value(); };
+	[[nodiscard]] inline bool has_transfer_queue() const { return transfer_queue_index_.has_value(); };
+	[[nodiscard]] inline bool has_compute_queue() const { return compute_queue_index_.has_value(); };
 
-	[[nodiscard]] VkDevice get_logical_device() const { return logical_device_; };
+	[[nodiscard]] inline VkDevice get_logical_device() const { return logical_device_; };
 
-	[[nodiscard]] VkPhysicalDevice get_physical_device() const { return physical_device_; };
-	[[nodiscard]] VkCommandPool get_graphics_command_pool() const { return graphics_command_pool_; };
-	[[nodiscard]] VkPhysicalDeviceProperties get_physical_device_properties() const { return physical_device_properties_; };
+	[[nodiscard]] inline VkPhysicalDevice get_physical_device() const { return physical_device_; };
+	[[nodiscard]] inline VkCommandPool get_graphics_command_pool() const { return graphics_command_pool_; };
+	[[nodiscard]] inline VkPhysicalDeviceProperties get_physical_device_properties() const { return physical_device_properties_; };
+	[[nodiscard]] inline VkFormat get_depth_format() const { return depth_format_; };
+
+	[[nodiscard]] inline const SwapchainSupportDetails &get_swapchain_support_details() const { return swapchain_support_; };
+	const SwapchainSupportDetails &update_swapchain_support_details();
 
 	[[nodiscard]] int32_t find_memory_index(uint32_t type_filter, VkMemoryPropertyFlags memory_flags) const;
 
@@ -143,6 +148,8 @@ private:
 	[[nodiscard]] bool check_device_extension_support(VkPhysicalDevice device);
 
 	bool detect_depth_format();
+
+	friend Swapchain;
 };
 
 }// namespace flwfrg::vk
