@@ -34,10 +34,12 @@ private:
 
 	VkSurfaceFormatKHR swapchain_image_format_;
 	uint8_t max_frames_in_flight_ = 2;
-	VkSwapchainKHR swapchain_ = VK_NULL_HANDLE;
+	Handle<VkSwapchainKHR> swapchain_{};
 
+	// Not stored in flwfrg::vk::Image since swapchain images are retrieved, not created.
 	std::vector<VkImage> swapchain_images_;
 	std::vector<VkImageView> swapchain_image_views_;
+
 	std::unique_ptr<Image> depth_attachment_;
 
 	std::vector<FrameBuffer> frame_buffers_;

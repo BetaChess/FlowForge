@@ -26,8 +26,11 @@ Swapchain::~Swapchain()
 		vkDestroyImageView(context_->device_.get_logical_device(), view, nullptr);
 	}
 
-	vkDestroySwapchainKHR(context_->device_.get_logical_device(), swapchain_, nullptr);
-	FLOWFORGE_TRACE("Vulkan swapchain destroyed");
+	if (swapchain_ != VK_NULL_HANDLE)
+	{
+		vkDestroySwapchainKHR(context_->device_.get_logical_device(), swapchain_, nullptr);
+		FLOWFORGE_TRACE("Vulkan swapchain destroyed");
+	}
 }
 
 bool Swapchain::acquire_next_image(uint64_t timeout_ns, VkSemaphore image_availiable_semaphore, VkFence fence, uint32_t *out_image_index)
@@ -60,7 +63,7 @@ bool Swapchain::present(VkQueue graphics_queue, VkQueue present_queue, VkSemapho
 	present_info.waitSemaphoreCount = 1;
 	present_info.pWaitSemaphores = &render_complete_semaphore;
 	present_info.swapchainCount = 1;
-	present_info.pSwapchains = &swapchain_;
+	present_info.pSwapchains = swapchain_.ptr();
 	present_info.pImageIndices = &present_image_index;
 	present_info.pResults = nullptr;
 
@@ -85,8 +88,8 @@ void Swapchain::recreate_swapchain()
 
 	vkDeviceWaitIdle(context_->device_.get_logical_device());
 
-	VkSwapchainKHR old_swapchain = swapchain_;
-	swapchain_ = VK_NULL_HANDLE;
+	Handle<VkSwapchainKHR> old_swapchain = std::move(swapchain_);
+	swapchain_ = make_handle<VkSwapchainKHR>(VK_NULL_HANDLE);
 
 	// Choose swapchain surface format and throw an error if this wasn't possible
 	if (!choose_swapchain_surface_format())
@@ -165,7 +168,7 @@ void Swapchain::recreate_swapchain()
 				context_->device_.get_logical_device(),
 				&create_info,
 				nullptr,
-				&swapchain_) != VK_SUCCESS)
+				swapchain_.ptr()) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create swapchain!");
 	}
