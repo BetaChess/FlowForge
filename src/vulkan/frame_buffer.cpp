@@ -34,7 +34,7 @@ FrameBuffer::FrameBuffer(Device *device, RenderPass *renderpass, uint32_t width,
 
 FrameBuffer::~FrameBuffer()
 {
-	if (handle_ != VK_NULL_HANDLE)
+	if (handle_.not_null())
 	{
 		vkDestroyFramebuffer(device_->get_logical_device(), handle_, nullptr);
 		FLOWFORGE_TRACE("Framebuffer destroyed");

@@ -13,6 +13,38 @@ DisplayContext::DisplayContext(Window *window, bool enable_validation_layers)
 	  device_{&instance_, &surface_, {}},
 	  swapchain_{this}
 {
+	FLOWFORGE_INFO("Creating frame buffers");
+	swapchain_.regenerate_frame_buffers(&main_render_pass_);
+	FLOWFORGE_INFO("Creating command buffers");
+	create_command_buffers();
+
+	image_avaliable_semaphores_.resize(swapchain_.max_frames_in_flight_);
+	queue_complete_semaphores_.resize(swapchain_.max_frames_in_flight_);
+	for (size_t i = 0; i < swapchain_.max_frames_in_flight_; i++)
+	{
+		VkSemaphoreCreateInfo semaphore_info{};
+		semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		vkCreateSemaphore(device_.get_logical_device(), &semaphore_info, nullptr, &image_avaliable_semaphores_[i]);
+		vkCreateSemaphore(device_.get_logical_device(), &semaphore_info, nullptr, &queue_complete_semaphores_[i]);
+
+		in_flight_fences_.emplace_back(&device_, true);
+	}
+
+	images_in_flight_.resize(swapchain_.get_image_count());
+}
+DisplayContext::~DisplayContext()
+{
+	if (device_.get_logical_device() == VK_NULL_HANDLE)
+		return;
+
+	vkDeviceWaitIdle(device_.get_logical_device());
+
+	// Destroy semaphores
+	for (size_t i = 0; i < swapchain_.max_frames_in_flight_; i++)
+	{
+		vkDestroySemaphore(device_.get_logical_device(), image_avaliable_semaphores_[i], nullptr);
+		vkDestroySemaphore(device_.get_logical_device(), queue_complete_semaphores_[i], nullptr);
+	}
 }
 
 void DisplayContext::create_command_buffers()

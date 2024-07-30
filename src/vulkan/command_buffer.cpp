@@ -38,6 +38,7 @@ CommandBuffer::~CommandBuffer()
 	}
 }
 
+
 void CommandBuffer::begin(bool is_single_use, bool is_renderpass_continue, bool is_simultaneous_use)
 {
 	if (state_ != State::READY)

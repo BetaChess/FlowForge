@@ -22,10 +22,16 @@ Device::Device(Instance *instance, Surface *surface, PhysicalDeviceRequirements 
 
 Device::~Device()
 {
-	vkDestroyCommandPool(logical_device_, graphics_command_pool_, nullptr);
-	FLOWFORGE_INFO("Graphics command pool destroyed");
-	vkDestroyDevice(logical_device_, nullptr);
-	FLOWFORGE_INFO("Logical device destroyed");
+	if (logical_device_.not_null())
+	{
+		if (graphics_command_pool_.not_null())
+		{
+			vkDestroyCommandPool(logical_device_, graphics_command_pool_, nullptr);
+			FLOWFORGE_INFO("Graphics command pool destroyed");
+		}
+		vkDestroyDevice(logical_device_, nullptr);
+		FLOWFORGE_INFO("Logical device destroyed");
+	}
 }
 
 const SwapchainSupportDetails &Device::update_swapchain_support_details()

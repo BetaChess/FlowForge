@@ -26,7 +26,7 @@ Swapchain::~Swapchain()
 		vkDestroyImageView(context_->device_.get_logical_device(), view, nullptr);
 	}
 
-	if (swapchain_ != VK_NULL_HANDLE)
+	if (swapchain_.not_null())
 	{
 		vkDestroySwapchainKHR(context_->device_.get_logical_device(), swapchain_, nullptr);
 		FLOWFORGE_TRACE("Vulkan swapchain destroyed");
@@ -173,7 +173,7 @@ void Swapchain::recreate_swapchain()
 		throw std::runtime_error("Failed to create swapchain!");
 	}
 
-	if (old_swapchain != VK_NULL_HANDLE)
+	if (old_swapchain.not_null())
 	{
 		vkDestroySwapchainKHR(context_->device_.get_logical_device(), old_swapchain, nullptr);
 	}
@@ -249,6 +249,22 @@ void Swapchain::recreate_swapchain()
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			VK_IMAGE_ASPECT_DEPTH_BIT,
 			true);
+}
+
+void Swapchain::regenerate_frame_buffers(RenderPass *renderpass)
+{
+	frame_buffers_.clear();
+
+	for (size_t i = 0; i < get_image_count(); i++)
+	{
+		std::vector<VkImageView> attachments{swapchain_image_views_[i], depth_attachment_->get_image_view()};
+		frame_buffers_.emplace_back(
+			&context_->device_,
+			renderpass,
+			context_->device_.swapchain_support_.capabilities.currentExtent.width,
+			context_->device_.swapchain_support_.capabilities.currentExtent.height,
+			attachments);
+	}
 }
 
 bool Swapchain::choose_swapchain_surface_format()

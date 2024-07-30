@@ -54,11 +54,11 @@ Buffer::Buffer(Device* device, uint64_t size, VkBufferUsageFlagBits usage, uint3
 
 Buffer::~Buffer()
 {
-	if (handle_ != VK_NULL_HANDLE)
+	if (handle_.not_null())
 	{
 		vkDestroyBuffer(device_->get_logical_device(), handle_, nullptr);
 	}
-	if (memory_ != VK_NULL_HANDLE)
+	if (memory_.not_null())
 	{
 		vkFreeMemory(device_->get_logical_device(), memory_, nullptr);
 	}
@@ -75,11 +75,11 @@ void Buffer::resize(uint64_t new_size, VkQueue queue, VkCommandPool pool)
 	// Wait for device to be idle
 	vkDeviceWaitIdle(device_->get_logical_device());
 
-	if (handle_ != VK_NULL_HANDLE)
+	if (handle_.not_null())
 	{
 		vkDestroyBuffer(device_->get_logical_device(), handle_, nullptr);
 	}
-	if (memory_ != VK_NULL_HANDLE)
+	if (memory_.not_null())
 	{
 		vkFreeMemory(device_->get_logical_device(), memory_, nullptr);
 	}

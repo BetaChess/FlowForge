@@ -1,12 +1,13 @@
 #pragma once
 
+#include "command_buffer.hpp"
 #include "device.hpp"
+#include "fence.hpp"
 #include "instance.hpp"
+#include "render_pass.hpp"
 #include "surface.hpp"
 #include "swapchain.hpp"
-#include "render_pass.hpp"
 #include "window.hpp"
-#include "command_buffer.hpp"
 
 namespace flwfrg::vk
 {
@@ -15,7 +16,14 @@ class DisplayContext
 {
 public:
 	explicit DisplayContext(Window* window, bool enable_validation_layers = true);
+	~DisplayContext();
 
+	// Copy
+	DisplayContext(const DisplayContext &) = delete;
+	DisplayContext &operator=(const DisplayContext &) = delete;
+	// Move
+	DisplayContext(DisplayContext &&other) noexcept = delete;
+	DisplayContext &operator=(DisplayContext &&other) noexcept = delete;
 
 private:
 	Window* window_ = nullptr;
@@ -36,11 +44,11 @@ private:
 
 	std::vector<CommandBuffer> graphics_command_buffers_{};
 
-	// std::vector<VkSemaphore> image_avaliable_semaphores_;
-	// std::vector<VkSemaphore> queue_complete_semaphores_;
-	//
-	// std::vector<Fence> in_flight_fences_;
-	// std::vector<Fence*> images_in_flight_;
+	std::vector<VkSemaphore> image_avaliable_semaphores_;
+	std::vector<VkSemaphore> queue_complete_semaphores_;
+
+	std::vector<Fence> in_flight_fences_;
+	std::vector<Fence*> images_in_flight_;
 
 	// Current swapchain image index (next index may be unpredictable)
 	uint32_t image_index_ = 0;

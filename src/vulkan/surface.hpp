@@ -12,15 +12,22 @@ class Window;
 class Surface
 {
 public:
-	Surface(const Instance *const instance, const Window *const window);
+	Surface(Instance const *instance, Window const *window);
 	~Surface();
+
+	// Copy
+	Surface(const Surface &) = delete;
+	Surface &operator=(const Surface &) = delete;
+	// Move
+	Surface(Surface &&other) noexcept = default;
+	Surface &operator=(Surface &&other) noexcept = default;
 
 	[[nodiscard]] constexpr VkSurfaceKHR handle() const noexcept { return surface_; };
 
 private:
-	const Instance *const instance_;
-	const Window *const window_;
-	VkSurfaceKHR surface_;
+	Instance const *instance_;
+	Window const *window_;
+	Handle<VkSurfaceKHR> surface_;
 };
 
 }// namespace flwfrg::vk

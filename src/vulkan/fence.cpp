@@ -27,7 +27,7 @@ Fence::Fence(Device *device, bool signaled)
 
 Fence::~Fence()
 {
-	if (handle_ != VK_NULL_HANDLE)
+	if (handle_.not_null())
 	{
 		vkDestroyFence(device_->get_logical_device(), handle_, nullptr);
 		FLOWFORGE_TRACE("Fence destroyed");

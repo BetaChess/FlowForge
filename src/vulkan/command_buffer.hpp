@@ -27,15 +27,41 @@ public:
 	CommandBuffer(const CommandBuffer &) = delete;
 	CommandBuffer &operator=(const CommandBuffer &) = delete;
 	// Move
-	constexpr CommandBuffer(CommandBuffer &&other) noexcept = default;
-	constexpr CommandBuffer &operator=(CommandBuffer &&other) noexcept = default;
+	constexpr CommandBuffer(CommandBuffer &&other) noexcept
+		: device_{std::move(other.device_)},
+		  handle_{std::move(other.handle_)},
+		  pool_handle_{std::move(other.pool_handle_)},
+		  state_{std::move(other.state_)}
+	{
+		other.state_ = State::NOT_ALLOCATED;
+		other.handle_ = Handle<VkCommandBuffer>{};
+		other.pool_handle_ = VK_NULL_HANDLE;
+		other.device_ = nullptr;
+	}
+
+	constexpr CommandBuffer &operator=(CommandBuffer &&other) noexcept
+	{
+		if (this != &other)
+		{
+			device_ = std::move(other.device_);
+			handle_ = std::move(other.handle_);
+			pool_handle_ = std::move(other.pool_handle_);
+			state_ = std::move(other.state_);
+
+			other.state_ = State::NOT_ALLOCATED;
+			other.handle_ = Handle<VkCommandBuffer>{};
+			other.pool_handle_ = VK_NULL_HANDLE;
+			other.device_ = nullptr;
+		}
+		return *this;
+	}
 
 	// Methods
 	[[nodiscard]] inline VkCommandBuffer get_handle() noexcept { return handle_; };
 
 	void begin(bool is_single_use, bool is_renderpass_continue, bool is_simultaneous_use);
 	void end();
-	void submit(VkQueue queue, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore, VkFence fence, VkPipelineStageFlags* flags = nullptr);
+	void submit(VkQueue queue, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore, VkFence fence, VkPipelineStageFlags *flags = nullptr);
 	void reset();
 
 	// Static methods
@@ -43,7 +69,7 @@ public:
 	static void end_single_time_commands(Device *device, CommandBuffer &command_buffer, VkQueue queue);
 
 private:
-	Device* device_ = nullptr;
+	Device *device_ = nullptr;
 
 	Handle<VkCommandBuffer> handle_{};
 	VkCommandPool pool_handle_{VK_NULL_HANDLE};
@@ -53,4 +79,4 @@ private:
 	friend RenderPass;
 };
 
-}
+}// namespace flwfrg::vk

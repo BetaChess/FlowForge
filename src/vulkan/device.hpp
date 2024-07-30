@@ -72,6 +72,13 @@ public:
 	Device(Instance *instance, Surface *surface, PhysicalDeviceRequirements requirements = {});
 	~Device();
 
+	// Copy
+	Device(const Device &) = delete;
+	Device &operator=(const Device &) = delete;
+	// Move
+	Device(Device &&other) noexcept = default;
+	Device &operator=(Device &&other) noexcept = default;
+
 	[[nodiscard]] inline VkQueue get_present_queue() const { return present_queue_; };
 	[[nodiscard]] inline VkQueue get_graphics_queue() const { return graphics_queue_; };
 	[[nodiscard]] inline VkQueue get_transfer_queue() const { return transfer_queue_; };
