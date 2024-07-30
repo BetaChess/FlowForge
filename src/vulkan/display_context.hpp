@@ -6,6 +6,7 @@
 #include "swapchain.hpp"
 #include "render_pass.hpp"
 #include "window.hpp"
+#include "command_buffer.hpp"
 
 namespace flwfrg::vk
 {
@@ -13,6 +14,7 @@ namespace flwfrg::vk
 class DisplayContext
 {
 public:
+	explicit DisplayContext(Window* window, bool enable_validation_layers = true);
 
 
 private:
@@ -41,9 +43,9 @@ private:
 	// std::vector<Fence*> images_in_flight_;
 
 	// Current swapchain image index (next index may be unpredictable)
-	uint32_t image_index_;
+	uint32_t image_index_ = 0;
 	// Current frame (will always change in a round-robin fashion).
-	uint32_t current_frame_;
+	uint32_t current_frame_ = 0;
 
 	// Methods
 

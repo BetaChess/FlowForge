@@ -6,6 +6,14 @@
 
 namespace flwfrg::vk
 {
+DisplayContext::DisplayContext(Window *window, bool enable_validation_layers)
+	: window_{window},
+	  instance_{enable_validation_layers},
+	  surface_{&instance_, window_},
+	  device_{&instance_, &surface_, {}},
+	  swapchain_{this}
+{
+}
 
 void DisplayContext::create_command_buffers()
 {
@@ -25,11 +33,11 @@ void DisplayContext::regenerate_frame_buffers()
 	{
 		std::vector<VkImageView> attachments{swapchain_.swapchain_image_views_[i], swapchain_.depth_attachment_->get_image_view()};
 		swapchain_.frame_buffers_.emplace_back(
-			&device_,
-			&main_render_pass_,
-			device_.get_swapchain_support_details().capabilities.currentExtent.width,
-			device_.get_swapchain_support_details().capabilities.currentExtent.height,
-			attachments);
+				&device_,
+				&main_render_pass_,
+				device_.get_swapchain_support_details().capabilities.currentExtent.width,
+				device_.get_swapchain_support_details().capabilities.currentExtent.height,
+				attachments);
 	}
 }
 

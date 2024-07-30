@@ -6,6 +6,7 @@
 #include "../src/vulkan/window.hpp"
 #include "../src/vulkan/surface.hpp"
 #include "../src/glfw_context.hpp"
+#include "../src/vulkan/display_context.hpp"
 
 namespace flwfrg
 {
