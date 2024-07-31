@@ -5,7 +5,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "handle.hpp"
+#include "util/handle.hpp"
 
 namespace flwfrg::vk
 {

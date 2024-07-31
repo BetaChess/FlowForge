@@ -10,7 +10,7 @@ set(SOURCES
         glfw_context.hpp
         glfw_context.cpp
         vulkan/instance.hpp
-        vulkan/handle.hpp
+        vulkan/util/handle.hpp
         vulkan/instance.cpp
         vulkan/device.hpp
         vulkan/device.cpp
@@ -36,6 +36,9 @@ set(SOURCES
         vulkan/fence.cpp
         vulkan/descriptor.hpp
         vulkan/descriptor.cpp
+        vulkan/shader/pipeline.hpp
+        vulkan/shader/pipeline.cpp
+        vulkan/util/status_optional.hpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
