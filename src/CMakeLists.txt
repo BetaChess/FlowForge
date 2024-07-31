@@ -34,6 +34,8 @@ set(SOURCES
         vulkan/display_context.cpp
         vulkan/fence.hpp
         vulkan/fence.cpp
+        vulkan/descriptor.hpp
+        vulkan/descriptor.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
