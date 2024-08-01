@@ -17,10 +17,10 @@ public:
 	enum class PipelineCreationStatus
 	{
 		SUCCESS,
-		UNKNOWN_ERROR,
 		OUT_OF_HOST_MEMORY,
 		OUT_OF_DEVICE_MEMORY,
-		INVALID_SHADER
+		INVALID_SHADER,
+		UNKNOWN_ERROR,
 	};
 
 public:
