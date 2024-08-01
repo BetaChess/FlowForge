@@ -10,7 +10,7 @@ class StatusOptional
 public:
 	StatusOptional() = default;
 	StatusOptional(STATUS_TYPE error_code) : status_code_{error_code} {};
-	inline StatusOptional(T obj) : optional_{obj}, status_code_{success_value} {};
+	inline StatusOptional(T&& obj) : optional_(std::move(obj)), status_code_{success_value} {};
 	~StatusOptional() = default;
 
 	// Copy

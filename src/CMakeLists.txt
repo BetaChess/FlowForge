@@ -39,6 +39,7 @@ set(SOURCES
         vulkan/shader/pipeline.hpp
         vulkan/shader/pipeline.cpp
         vulkan/util/status_optional.hpp
+        vulkan/shader/vertex.hpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
