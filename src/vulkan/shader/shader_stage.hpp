@@ -33,18 +33,6 @@ constexpr const char *get_shader_stage_file_extension(VkShaderStageFlagBits stag
 class ShaderStage
 {
 public:
-	enum class ShaderStageCreationStatus
-	{
-		SUCCESS,
-		OUT_OF_HOST_MEMORY,
-		OUT_OF_DEVICE_MEMORY,
-		INVALID_SHADER,
-		UNKNOWN_OR_INVALID_SHADER_STAGE,
-		FAILED_TO_OPEN_FILE,
-		UNKNOWN_ERROR,
-	};
-
-public:
 	ShaderStage() = default;
 	~ShaderStage();
 
@@ -55,7 +43,7 @@ public:
 	ShaderStage(ShaderStage &&other) noexcept = default;
 	ShaderStage &operator=(ShaderStage &&other) noexcept = default;
 
-	static StatusOptional<ShaderStage, ShaderStageCreationStatus, ShaderStageCreationStatus::SUCCESS> create_shader_module(
+	static StatusOptional<ShaderStage, Status, Status::SUCCESS> create_shader_module(
 			Device *device,
 			const std::string &name,
 			VkShaderStageFlagBits shader_stage_flag);

@@ -26,7 +26,7 @@ void Pipeline::bind(CommandBuffer &command_buffer, VkPipelineBindPoint bind_poin
 	vkCmdBindPipeline(command_buffer.get_handle(), bind_point, handle_);
 }
 
-StatusOptional<Pipeline, Pipeline::PipelineCreationStatus, Pipeline::PipelineCreationStatus::SUCCESS> Pipeline::create_pipeline(
+StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 		Device *device,
 		const RenderPass &renderpass,
 		const std::vector<VkVertexInputAttributeDescription> &attributes,
@@ -162,11 +162,11 @@ StatusOptional<Pipeline, Pipeline::PipelineCreationStatus, Pipeline::PipelineCre
 		switch (result)
 		{
 			case VK_ERROR_OUT_OF_HOST_MEMORY:
-				return {PipelineCreationStatus::OUT_OF_HOST_MEMORY};
+				return {Status::OUT_OF_HOST_MEMORY};
 			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-				return {PipelineCreationStatus::OUT_OF_DEVICE_MEMORY};
+				return {Status::OUT_OF_DEVICE_MEMORY};
 			default:
-				return {PipelineCreationStatus::UNKNOWN_ERROR};
+				return {Status::UNKNOWN_ERROR};
 		}
 	}
 
@@ -208,13 +208,13 @@ StatusOptional<Pipeline, Pipeline::PipelineCreationStatus, Pipeline::PipelineCre
 		switch (result)
 		{
 			case VK_ERROR_OUT_OF_HOST_MEMORY:
-				return {PipelineCreationStatus::OUT_OF_HOST_MEMORY};
+				return {Status::OUT_OF_HOST_MEMORY};
 			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-				return {PipelineCreationStatus::OUT_OF_DEVICE_MEMORY};
+				return {Status::OUT_OF_DEVICE_MEMORY};
 			case VK_ERROR_INVALID_SHADER_NV:
-				return  {PipelineCreationStatus::INVALID_SHADER};
+				return  {Status::INVALID_SHADER};
 			default:
-				return {PipelineCreationStatus::UNKNOWN_ERROR};
+				return {Status::UNKNOWN_ERROR};
 		}
 	}
 

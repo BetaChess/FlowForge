@@ -4,6 +4,17 @@
 
 namespace flwfrg::vk
 {
+enum class Status
+{
+	SUCCESS,
+	OUT_OF_HOST_MEMORY,
+	OUT_OF_DEVICE_MEMORY,
+	INVALID_SHADER,
+	UNKNOWN_OR_INVALID_SHADER_STAGE,
+	FAILED_TO_OPEN_FILE,
+	UNKNOWN_ERROR,
+};
+
 template<typename T, typename STATUS_TYPE, STATUS_TYPE success_value>
 class StatusOptional
 {

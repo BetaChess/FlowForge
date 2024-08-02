@@ -14,16 +14,6 @@ class Device;
 class Pipeline
 {
 public:
-	enum class PipelineCreationStatus
-	{
-		SUCCESS,
-		OUT_OF_HOST_MEMORY,
-		OUT_OF_DEVICE_MEMORY,
-		INVALID_SHADER,
-		UNKNOWN_ERROR,
-	};
-
-public:
 	Pipeline() = default;
 	~Pipeline();
 
@@ -44,7 +34,7 @@ public:
 
 	// Static methods
 
-	static StatusOptional<Pipeline, PipelineCreationStatus, PipelineCreationStatus::SUCCESS> create_pipeline(
+	static StatusOptional<Pipeline, Status, Status::SUCCESS> create_pipeline(
 			Device *device,
 			const RenderPass &renderpass,
 			const std::vector<VkVertexInputAttributeDescription> &attributes,

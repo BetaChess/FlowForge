@@ -18,7 +18,7 @@ ShaderStage::~ShaderStage()
 	}
 }
 
-StatusOptional<ShaderStage, ShaderStage::ShaderStageCreationStatus, ShaderStage::ShaderStageCreationStatus::SUCCESS> ShaderStage::create_shader_module(Device *device, const std::string &name, VkShaderStageFlagBits shader_stage_flag)
+StatusOptional<ShaderStage, Status, Status::SUCCESS> ShaderStage::create_shader_module(Device *device, const std::string &name, VkShaderStageFlagBits shader_stage_flag)
 {
 	assert(device != nullptr);
 
@@ -29,8 +29,8 @@ StatusOptional<ShaderStage, ShaderStage::ShaderStageCreationStatus, ShaderStage:
 	} catch (const std::runtime_error &e)
 	{
 		FLOWFORGE_ERROR(e.what());
-		FLOWFORGE_ERROR("Shader stage flag was {}", shader_stage_flag);
-		return ShaderStageCreationStatus::UNKNOWN_OR_INVALID_SHADER_STAGE;
+		// FLOWFORGE_ERROR("Shader stage flag was {}", shader_stage_flag);
+		return Status::UNKNOWN_OR_INVALID_SHADER_STAGE;
 	}
 
 	ShaderStage return_stage;
@@ -41,7 +41,7 @@ StatusOptional<ShaderStage, ShaderStage::ShaderStageCreationStatus, ShaderStage:
 	if (!file.is_open())
 	{
 		FLOWFORGE_ERROR("Failed to open file: {}", file_name);
-		return ShaderStageCreationStatus::FAILED_TO_OPEN_FILE;
+		return Status::FAILED_TO_OPEN_FILE;
 	}
 
 	std::vector<uint8_t> file_buffer;
@@ -67,13 +67,13 @@ StatusOptional<ShaderStage, ShaderStage::ShaderStageCreationStatus, ShaderStage:
 		switch (result)
 		{
 			case VK_ERROR_OUT_OF_HOST_MEMORY:
-				return {ShaderStageCreationStatus::OUT_OF_HOST_MEMORY};
+				return {Status::OUT_OF_HOST_MEMORY};
 			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-				return {ShaderStageCreationStatus::OUT_OF_DEVICE_MEMORY};
+				return {Status::OUT_OF_DEVICE_MEMORY};
 			case VK_ERROR_INVALID_SHADER_NV:
-				return  {ShaderStageCreationStatus::INVALID_SHADER};
+				return  {Status::INVALID_SHADER};
 			default:
-				return ShaderStageCreationStatus::UNKNOWN_ERROR;
+				return Status::UNKNOWN_ERROR;
 		}
 	}
 
