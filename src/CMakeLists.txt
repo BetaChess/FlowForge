@@ -2,6 +2,15 @@ cmake_minimum_required(VERSION 3.20)
 
 project(flowforge_lib)
 
+## Compile C libary
+set(STB_INTERNAL_LIB_NAME stb_internal)
+
+add_library(${STB_INTERNAL_LIB_NAME} STATIC stb_image.c)
+
+target_include_directories(${STB_INTERNAL_LIB_NAME}
+        PUBLIC ../vendor/stb
+)
+
 set(SOURCES
         pch.hpp
         ../include/flowforge.hpp
@@ -42,6 +51,9 @@ set(SOURCES
         vulkan/shader/vertex.hpp
         vulkan/shader/shader_stage.hpp
         vulkan/shader/shader_stage.cpp
+        vulkan/resource/texture.hpp
+        vulkan/resource/texture.cpp
+        vulkan/util/constants.hpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
@@ -62,6 +74,7 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC $ENV{VULKAN_SDK}/include/
         PUBLIC ../vendor/glfw/include/
         PUBLIC ../vendor/spdlog/include/
+        PUBLIC ../vendor/stb
         PUBLIC ../vendor/glm
 )
 
@@ -72,6 +85,7 @@ target_link_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
         glfw
         ${Vulkan_LIBRARY}
+        ${STB_INTERNAL_LIB_NAME}
 )
 
 include_directories(.)

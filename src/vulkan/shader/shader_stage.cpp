@@ -41,7 +41,7 @@ StatusOptional<ShaderStage, Status, Status::SUCCESS> ShaderStage::create_shader_
 	if (!file.is_open())
 	{
 		FLOWFORGE_ERROR("Failed to open file: {}", file_name);
-		return Status::FAILED_TO_OPEN_FILE;
+		return Status::FLOWFORGE_FAILED_TO_OPEN_FILE;
 	}
 
 	std::vector<uint8_t> file_buffer;
