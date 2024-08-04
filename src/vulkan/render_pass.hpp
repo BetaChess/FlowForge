@@ -40,7 +40,7 @@ public:
 
 	// methods
 
-	[[nodiscard]] constexpr VkRenderPass get_handle() const { return handle_; };
+	[[nodiscard]] constexpr VkRenderPass handle() const { return handle_; };
 
 	void set_render_area(glm::vec4 draw_area);
 

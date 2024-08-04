@@ -31,8 +31,8 @@ public:
 	Image(const Image &) = delete;
 	Image &operator=(const Image &) = delete;
 	// Move
-	constexpr Image(Image &&other) noexcept = default;
-	constexpr Image &operator=(Image &&other) noexcept = default;
+	Image(Image &&other) noexcept = default;
+	Image &operator=(Image &&other) noexcept = default;
 
 
 	void transition_layout(CommandBuffer &command_buffer,

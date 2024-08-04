@@ -5,13 +5,17 @@ project(flowforge_lib)
 ## Compile C libary
 set(STB_INTERNAL_LIB_NAME stb_internal)
 
-add_library(${STB_INTERNAL_LIB_NAME} STATIC stb_image.c)
+add_library(${STB_INTERNAL_LIB_NAME} STATIC stb_image.c
+)
 
 target_include_directories(${STB_INTERNAL_LIB_NAME}
         PUBLIC ../vendor/stb
 )
 
 set(SOURCES
+        # Dear ImGui sources
+        ${IMGUI_SOURCES}
+        #Project sources
         pch.hpp
         ../include/flowforge.hpp
         logging/logger.hpp
@@ -54,6 +58,12 @@ set(SOURCES
         vulkan/resource/texture.hpp
         vulkan/resource/texture.cpp
         vulkan/util/constants.hpp
+        vulkan/shader/default/imgui_shader.hpp
+        vulkan/shader/default/imgui_shader.cpp
+        vulkan/renderer.hpp
+        vulkan/renderer.cpp
+        vulkan/debug_messenger.hpp
+        vulkan/debug_messenger.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
@@ -74,6 +84,8 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC $ENV{VULKAN_SDK}/include/
         PUBLIC ../vendor/glfw/include/
         PUBLIC ../vendor/spdlog/include/
+        PUBLIC ${IMGUI_DIR}/backends/
+        PUBLIC ${IMGUI_DIR}
         PUBLIC ../vendor/stb
         PUBLIC ../vendor/glm
 )

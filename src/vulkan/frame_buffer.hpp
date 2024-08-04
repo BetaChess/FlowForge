@@ -20,12 +20,12 @@ public:
 	FrameBuffer(const FrameBuffer &) = delete;
 	FrameBuffer &operator=(const FrameBuffer &) = delete;
 	// Move
-	constexpr FrameBuffer(FrameBuffer &&other) noexcept = default;
-	constexpr FrameBuffer &operator=(FrameBuffer &&other) noexcept = default;
+	FrameBuffer(FrameBuffer &&other) noexcept = default;
+	FrameBuffer &operator=(FrameBuffer &&other) noexcept = default;
 
 	// Methods
 
-	[[nodiscard]] VkFramebuffer get_handle() noexcept { return handle_; };
+	[[nodiscard]] VkFramebuffer handle() noexcept { return handle_; };
 
 private:
 	Device *device_;

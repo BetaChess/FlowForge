@@ -2,67 +2,10 @@
 
 #include "instance.hpp"
 
+#include "debug_messenger.hpp"
+
 #include <stdexcept>
 #include <unordered_set>
-
-///// Local helper functions
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-		void *pUserData)
-{
-
-	// TODO: Seperate from normal flowforge errors
-	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-	{
-		FLOWFORGE_ERROR("VK_VALIDATION {}", pCallbackData->pMessage);
-	} else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-	{
-		FLOWFORGE_WARN("VK_VALIDATION {}", pCallbackData->pMessage);
-	} else
-	{
-		FLOWFORGE_TRACE("VK_VALIDATION {}", pCallbackData->pMessage);
-	}
-
-	return VK_FALSE;
-}
-
-static VkResult CreateDebugUtilsMessengerEXT(
-		VkInstance instance_,
-		const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-		const VkAllocationCallbacks *pAllocator,
-		VkDebugUtilsMessengerEXT *pDebugMessenger)
-{
-
-	auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(
-			instance_,
-			"vkCreateDebugUtilsMessengerEXT");
-
-	if (func != nullptr)
-	{
-		return func(instance_, pCreateInfo, pAllocator, pDebugMessenger);
-	} else
-	{
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
-}
-
-static void DestroyDebugUtilsMessengerEXT(
-		VkInstance instance_,
-		VkDebugUtilsMessengerEXT debugMessenger,
-		const VkAllocationCallbacks *pAllocator)
-{
-	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(
-			instance_,
-			"vkDestroyDebugUtilsMessengerEXT");
-
-	if (func != nullptr)
-	{
-		func(instance_, debugMessenger, pAllocator);
-	}
-}
 
 namespace flwfrg::vk
 {
@@ -122,11 +65,11 @@ Instance::Instance(bool enable_validation_layers)
 		debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
 									  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 									  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		debugCreateInfo.pfnUserCallback = debugCallback;
+		debugCreateInfo.pfnUserCallback = DebugMessenger::debugCallback;
 		debugCreateInfo.pUserData = nullptr;// Optional
 
 		// Give the struct the creation info.
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *) &debugCreateInfo;
+		createInfo.pNext = &debugCreateInfo;
 	} else
 	{
 		// Specify that no layers are enabled (0)

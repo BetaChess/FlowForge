@@ -16,6 +16,8 @@ DescriptorPool::DescriptorPool(Device *device, VkDescriptorPoolCreateInfo create
 	{
 		throw std::runtime_error("Failed to create descriptor pool");
 	}
+
+	FLOWFORGE_INFO("Descriptor pool created");
 }
 
 DescriptorPool::~DescriptorPool()
@@ -24,6 +26,7 @@ DescriptorPool::~DescriptorPool()
 	{
 		vkDestroyDescriptorPool(device_->get_logical_device(), handle_, nullptr);
 		handle_ = make_handle<VkDescriptorPool>(VK_NULL_HANDLE);
+		FLOWFORGE_INFO("Descriptor pool destroyed");
 	}
 }
 

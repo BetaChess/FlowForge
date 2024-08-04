@@ -21,8 +21,8 @@ public:
 	Buffer(const Buffer &) = delete;
 	Buffer &operator=(const Buffer &) = delete;
 	// Move
-	constexpr Buffer(Buffer &&other) noexcept = default;
-	constexpr Buffer &operator=(Buffer &&other) noexcept = default;
+	Buffer(Buffer &&other) noexcept = default;
+	Buffer &operator=(Buffer &&other) noexcept = default;
 
 	// Methods
 

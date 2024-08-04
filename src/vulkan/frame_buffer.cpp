@@ -18,7 +18,7 @@ FrameBuffer::FrameBuffer(Device *device, RenderPass *renderpass, uint32_t width,
 
 	VkFramebufferCreateInfo create_info{};
 	create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	create_info.renderPass = renderpass->get_handle();
+	create_info.renderPass = renderpass->handle();
 	create_info.attachmentCount = static_cast<uint32_t>(attachments_.size());
 	create_info.pAttachments = attachments_.data();
 	create_info.width = width;

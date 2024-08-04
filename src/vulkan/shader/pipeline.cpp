@@ -189,7 +189,7 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 
 	pipeline_info.layout = return_pipeline.pipeline_layout_;
 
-	pipeline_info.renderPass = renderpass.get_handle();
+	pipeline_info.renderPass = renderpass.handle();
 	pipeline_info.subpass = 0;
 	pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 	pipeline_info.basePipelineIndex = -1;

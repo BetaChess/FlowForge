@@ -92,6 +92,8 @@ Image::Image(
 	{
 		view_create(format, aspect_flags);
 	}
+
+	FLOWFORGE_TRACE("Vulkan Image created");
 }
 
 Image::~Image()
@@ -103,6 +105,7 @@ Image::~Image()
 	if (image_handle_)
 	{
 		vkDestroyImage(device_->get_logical_device(), image_handle_, nullptr);
+		FLOWFORGE_TRACE("Vulkan Image destroyed");
 	}
 	if (memory_)
 	{

@@ -50,6 +50,8 @@ Buffer::Buffer(Device* device, uint64_t size, VkBufferUsageFlagBits usage, uint3
 	{
 		bind(0);
 	}
+
+	FLOWFORGE_TRACE("Vulkan Buffer created");
 }
 
 Buffer::~Buffer()
@@ -57,6 +59,7 @@ Buffer::~Buffer()
 	if (handle_.not_null())
 	{
 		vkDestroyBuffer(device_->get_logical_device(), handle_, nullptr);
+		FLOWFORGE_TRACE("Vulkan Buffer destroyed");
 	}
 	if (memory_.not_null())
 	{

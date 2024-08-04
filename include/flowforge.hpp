@@ -7,6 +7,8 @@
 #include "../src/vulkan/surface.hpp"
 #include "../src/glfw_context.hpp"
 #include "../src/vulkan/display_context.hpp"
+#include "../src/vulkan/shader/default/imgui_shader.hpp"
+#include "../src/vulkan/renderer.hpp"
 
 namespace flwfrg
 {

@@ -12,6 +12,11 @@ enum class Status
 	INVALID_SHADER,
 	UNKNOWN_OR_INVALID_SHADER_STAGE,
 	INVALID_OPAQUE_CAPTURE_ADDRESS_KHR,
+	OUT_OF_DATE_KHR,
+	SUBOPTIMAL_KHR,
+	DEVICE_LOST,
+	SURFACE_LOST_KHR,
+	FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT,
 	FLOWFORGE_UNSUPPORTED_CHANNEL_COUNT,
 	FLOWFORGE_FAILED_TO_OPEN_FILE,
 	FLOWFORGE_FAILED_TO_LOAD_TEXTURE_DATA,
@@ -24,7 +29,7 @@ class StatusOptional
 public:
 	StatusOptional() = default;
 	StatusOptional(STATUS_TYPE error_code) : status_code_{error_code} {};
-	inline StatusOptional(T&& obj) : optional_(std::move(obj)), status_code_{success_value} {};
+	inline StatusOptional(T &&obj) : optional_(std::move(obj)), status_code_{success_value} {};
 	~StatusOptional() = default;
 
 	// Copy
@@ -38,14 +43,14 @@ public:
 
 	[[nodiscard]] constexpr bool has_value() const { return optional_.has_value(); }
 
-	[[nodiscard]] constexpr const STATUS_TYPE& status() const noexcept { return status_code_; }
+	[[nodiscard]] constexpr const STATUS_TYPE &status() const noexcept { return status_code_; }
 
-	[[nodiscard]] constexpr T& value() { return optional_.value(); }
-	[[nodiscard]] constexpr const T& value() const { return optional_.value(); }
+	[[nodiscard]] constexpr T &value() { return optional_.value(); }
+	[[nodiscard]] constexpr const T &value() const { return optional_.value(); }
 
 private:
 	std::optional<T> optional_{};
 	STATUS_TYPE status_code_;
 };
 
-}
+}// namespace flwfrg::vk

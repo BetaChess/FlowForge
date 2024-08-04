@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 
 project(FlowForge)
 
+set(IMGUI_DIR ../vendor/imgui)
+set(IMGUI_SOURCES ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp)
+
 # Find the libraries using https://github.com/SaschaWillems/Vulkan/blob/master/CMakeLists.txt
 # Note: MIT License
 # Use FindVulkan module added with CMAKE 3.7

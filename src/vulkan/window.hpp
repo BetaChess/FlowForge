@@ -13,6 +13,7 @@ class Window
 {
 public:
 	// Constructor(s)
+	Window() = default;
 	Window(size_t w, size_t h, const std::string &name);
 
 	// Delete copy constructor and assignment operator.
@@ -38,10 +39,10 @@ public:
 
 private:
 	// Private members
-	GLFWwindow *window_;
-	std::string windowName_;
+	GLFWwindow *window_ = nullptr;
+	std::string windowName_ = "INVALID";
 
-	uint32_t frame_buffer_width_, frame_buffer_height_;
+	uint32_t frame_buffer_width_ = 0, frame_buffer_height_ = 0;
 	bool frame_buffer_resized_ = false;
 
 	// Frame buffer resize method

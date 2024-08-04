@@ -2,8 +2,8 @@
 
 #include "swapchain.hpp"
 
-#include "display_context.hpp"
 #include "command_buffer.hpp"
+#include "display_context.hpp"
 
 namespace flwfrg::vk
 {
@@ -33,7 +33,7 @@ Swapchain::~Swapchain()
 	}
 }
 
-bool Swapchain::acquire_next_image(uint64_t timeout_ns, VkSemaphore image_availiable_semaphore, VkFence fence, uint32_t *out_image_index)
+Status Swapchain::acquire_next_image(uint64_t timeout_ns, VkSemaphore image_availiable_semaphore, VkFence fence, uint32_t *out_image_index)
 {
 	VkResult result = vkAcquireNextImageKHR(
 			context_->device_.get_logical_device(),
@@ -48,15 +48,29 @@ bool Swapchain::acquire_next_image(uint64_t timeout_ns, VkSemaphore image_availi
 		// Trigger swapchain recreation, then boot out of the render loop.
 		recreate_swapchain();
 		context_->regenerate_frame_buffers();
-		return false;
+		return Status::OUT_OF_DATE_KHR;
 	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		throw std::runtime_error("Failed to acquire swapchain image!");
+		switch (result)
+		{
+			case VK_ERROR_OUT_OF_HOST_MEMORY:
+				return Status::OUT_OF_HOST_MEMORY;
+			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+				return Status::OUT_OF_DEVICE_MEMORY;
+			case VK_ERROR_DEVICE_LOST:
+				return Status::DEVICE_LOST;
+			case VK_ERROR_SURFACE_LOST_KHR:
+				return Status::SURFACE_LOST_KHR;
+			case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
+				return Status::FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT;
+			default:
+				return Status::UNKNOWN_ERROR;
+		}
 	}
 
-	return true;
+	return Status::SUCCESS;
 }
-bool Swapchain::present(VkQueue graphics_queue, VkQueue present_queue, VkSemaphore render_complete_semaphore, uint32_t present_image_index)
+Status Swapchain::present(VkQueue graphics_queue, VkQueue present_queue, VkSemaphore render_complete_semaphore, uint32_t present_image_index)
 {
 	VkPresentInfoKHR present_info{};
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -74,12 +88,26 @@ bool Swapchain::present(VkQueue graphics_queue, VkQueue present_queue, VkSemapho
 		context_->regenerate_frame_buffers();
 	} else if (result != VK_SUCCESS)
 	{
-		throw std::runtime_error("Failed to present swapchain image!");
+		switch (result)
+		{
+			case VK_ERROR_OUT_OF_HOST_MEMORY:
+				return Status::OUT_OF_HOST_MEMORY;
+			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+				return Status::OUT_OF_DEVICE_MEMORY;
+			case VK_ERROR_DEVICE_LOST:
+				return Status::DEVICE_LOST;
+			case VK_ERROR_SURFACE_LOST_KHR:
+				return Status::SURFACE_LOST_KHR;
+			case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
+				return Status::FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT;
+			default:
+				return Status::UNKNOWN_ERROR;
+		}
 	}
 
 	context_->current_frame_ = (context_->current_frame_ + 1) % max_frames_in_flight_;
 
-	return true;
+	return Status::SUCCESS;
 }
 
 void Swapchain::recreate_swapchain()
@@ -255,15 +283,16 @@ void Swapchain::regenerate_frame_buffers(RenderPass *renderpass)
 {
 	frame_buffers_.clear();
 
+	frame_buffer_size_ = {context_->device_.swapchain_support_.capabilities.currentExtent.width, context_->device_.swapchain_support_.capabilities.currentExtent.height};
 	for (size_t i = 0; i < get_image_count(); i++)
 	{
 		std::vector<VkImageView> attachments{swapchain_image_views_[i], depth_attachment_->get_image_view()};
 		frame_buffers_.emplace_back(
-			&context_->device_,
-			renderpass,
-			context_->device_.swapchain_support_.capabilities.currentExtent.width,
-			context_->device_.swapchain_support_.capabilities.currentExtent.height,
-			attachments);
+				&context_->device_,
+				renderpass,
+				frame_buffer_size_.x,
+				frame_buffer_size_.y,
+				attachments);
 	}
 }
 

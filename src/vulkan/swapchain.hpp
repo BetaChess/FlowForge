@@ -2,8 +2,14 @@
 
 #include "frame_buffer.hpp"
 #include "image.hpp"
+#include "util/status_optional.hpp"
 
 #include <vulkan/vulkan_core.h>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 
 namespace flwfrg::vk
@@ -24,9 +30,10 @@ public:
 	Swapchain &operator=(Swapchain &&other) noexcept = default;
 
 	// Methods
-	bool acquire_next_image(uint64_t timeout_ns, VkSemaphore image_availiable_semaphore, VkFence fence, uint32_t *out_image_index);
-	bool present(VkQueue graphics_queue, VkQueue present_queue, VkSemaphore render_complete_semaphore, uint32_t present_image_index);
+	Status acquire_next_image(uint64_t timeout_ns, VkSemaphore image_availiable_semaphore, VkFence fence, uint32_t *out_image_index);
+	Status present(VkQueue graphics_queue, VkQueue present_queue, VkSemaphore render_complete_semaphore, uint32_t present_image_index);
 	[[nodiscard]] inline uint8_t get_image_count() const { return swapchain_images_.size(); };
+	[[nodiscard]] inline glm::vec2 get_frame_buffer_size() const { return frame_buffer_size_; };
 
 private:
 	DisplayContext* context_;
@@ -41,6 +48,7 @@ private:
 
 	std::unique_ptr<Image> depth_attachment_;
 
+	glm::vec2 frame_buffer_size_ = {};
 	std::vector<FrameBuffer> frame_buffers_;
 
 	void recreate_swapchain();
