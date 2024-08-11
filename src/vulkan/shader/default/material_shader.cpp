@@ -29,7 +29,7 @@ MaterialShader::MaterialShader(DisplayContext *context)
 			throw std::runtime_error("Failed to create shader stage");
 		}
 
-		stages.emplace_back(std::move(stage.value()));
+		stages_.emplace_back(std::move(stage.value()));
 	}
 
 	// Global descriptors
@@ -138,19 +138,23 @@ MaterialShader::MaterialShader(DisplayContext *context)
 	stage_create_infos.resize(shader_stage_count);
 	for (uint16_t i = 0; i < shader_stage_count; i++)
 	{
-		stage_create_infos[i] = stages[i].get_shader_stage_create_info();
+		stage_create_infos[i] = stages_[i].get_shader_stage_create_info();
 	}
+
+	Pipeline::PipelineConfig pipeline_config;
+	pipeline_config.p_renderpass = &context_->get_main_render_pass();
+	pipeline_config.p_attributes = &binding_description;
+	pipeline_config.p_descriptor_set_layouts = &descriptor_set_layouts;
+	pipeline_config.p_stages = &stage_create_infos;
+	pipeline_config.viewport = viewport;
+	pipeline_config.scissor = scissor;
+	pipeline_config.vertex_stride = sizeof(Vertex3d);
 
 	// Create the pipeline
 	auto created_pipeline =
 			Pipeline::create_pipeline(
 					&context_->get_device(),
-					context_->get_main_render_pass(),
-					binding_description,
-					descriptor_set_layouts,
-					stage_create_infos,
-					viewport,
-					scissor,
+					pipeline_config,
 					false);
 
 	// Check that it was created
@@ -298,7 +302,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 		Texture* texture = data.textures[sampler_index];
 		auto& descriptor_generation = object_state->descriptor_states[descriptor_index].generations[image_index];
 
-		if (texture->get_generation() == constant::invalid_generation)
+		if (texture == nullptr || texture->get_generation() == constant::invalid_generation)
 		{
 			texture = &default_texture_;
 

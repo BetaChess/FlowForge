@@ -46,7 +46,7 @@ public:
 private:
 	DisplayContext *context_ = nullptr;
 
-	std::vector<ShaderStage> stages{};
+	std::vector<ShaderStage> stages_{};
 
 	DescriptorPool global_descriptor_pool_{};
 	DescriptorPool local_descriptor_pool_{};

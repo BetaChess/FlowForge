@@ -122,6 +122,8 @@ void Buffer::load_data(const void *data, uint64_t offset, uint64_t size, uint32_
 
 void Buffer::upload_data(const void *data, uint64_t offset, uint64_t size, VkCommandPool pool, VkFence fence, VkQueue queue)
 {
+	bind(0);
+
 	VkBufferCreateFlags create_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	Buffer staging_buffer{device_, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, create_flags, true};
 

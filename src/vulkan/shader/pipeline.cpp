@@ -28,15 +28,14 @@ void Pipeline::bind(CommandBuffer &command_buffer, VkPipelineBindPoint bind_poin
 
 StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 		Device *device,
-		const RenderPass &renderpass,
-		const std::vector<VkVertexInputAttributeDescription> &attributes,
-		const std::vector<VkDescriptorSetLayout> &descriptor_set_layouts,
-		const std::vector<VkPipelineShaderStageCreateInfo> &stages,
-		VkViewport viewport,
-		VkRect2D scissor,
+		PipelineConfig pipeline_config,
 		bool is_wireframe)
 {
 	assert(device != nullptr);
+
+	assert(pipeline_config.p_attributes != nullptr);
+	assert(pipeline_config.p_stages != nullptr);
+	assert(pipeline_config.p_renderpass != nullptr);
 
 	Pipeline return_pipeline{};
 	return_pipeline.device_ = device;
@@ -45,9 +44,9 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	VkPipelineViewportStateCreateInfo viewport_state{};
 	viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewport_state.viewportCount = 1;
-	viewport_state.pViewports = &viewport;
+	viewport_state.pViewports = &pipeline_config.viewport;
 	viewport_state.scissorCount = 1;
-	viewport_state.pScissors = &scissor;
+	viewport_state.pScissors = &pipeline_config.scissor;
 
 	// Rasterizer
 	VkPipelineRasterizationStateCreateInfo rasterizer{};
@@ -84,7 +83,8 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 
 	// Color blend attachment state
 	VkPipelineColorBlendAttachmentState color_blend_attachment{};
-	color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+											VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	color_blend_attachment.blendEnable = VK_TRUE;
 	color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -116,7 +116,7 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	// Vertex input
 	VkVertexInputBindingDescription vertex_binding_description{};
 	vertex_binding_description.binding = 0;
-	vertex_binding_description.stride = sizeof(Vertex3d);
+	vertex_binding_description.stride = pipeline_config.vertex_stride;
 	vertex_binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	// Attributes
@@ -124,8 +124,8 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertex_input_info.vertexBindingDescriptionCount = 1;
 	vertex_input_info.pVertexBindingDescriptions = &vertex_binding_description;
-	vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributes.size());
-	vertex_input_info.pVertexAttributeDescriptions = attributes.data();
+	vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(pipeline_config.p_attributes->size());
+	vertex_input_info.pVertexAttributeDescriptions = pipeline_config.p_attributes->data();
 
 	// Input assembly
 	VkPipelineInputAssemblyStateCreateInfo input_assembly{};
@@ -137,25 +137,28 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	VkPipelineLayoutCreateInfo pipeline_layout_info{};
 	pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-	// Push constants
-	VkPushConstantRange push_constant_range;
-	push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	push_constant_range.offset = sizeof(glm::mat4) * 0;
-	push_constant_range.size = sizeof(glm::mat4) * 2;
-	pipeline_layout_info.pushConstantRangeCount = 1;
-	pipeline_layout_info.pPushConstantRanges = &push_constant_range;
+	// // Push constants
+	// VkPushConstantRange push_constant_range;
+	// push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	// push_constant_range.offset = sizeof(glm::mat4) * 0;
+	// push_constant_range.size = sizeof(glm::mat4) * 2;
+	// pipeline_layout_info.pushConstantRangeCount = 1;
+	// pipeline_layout_info.pPushConstantRanges = &push_constant_range;
 
 	// Descriptor set layouts
-	pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
-	pipeline_layout_info.pSetLayouts = descriptor_set_layouts.data();
+	if (pipeline_config.p_descriptor_set_layouts)
+	{
+		pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(pipeline_config.p_descriptor_set_layouts->size());
+		pipeline_layout_info.pSetLayouts = pipeline_config.p_descriptor_set_layouts->data();
+	}
 
 	// Create the pipeline layout
 
 	auto result = vkCreatePipelineLayout(
-		return_pipeline.device_->get_logical_device(),
-		&pipeline_layout_info,
-		nullptr,
-		return_pipeline.pipeline_layout_.ptr());
+			return_pipeline.device_->get_logical_device(),
+			&pipeline_layout_info,
+			nullptr,
+			return_pipeline.pipeline_layout_.ptr());
 	if (result != VK_SUCCESS)
 	{
 		FLOWFORGE_ERROR("Failed to create pipeline layout");
@@ -174,8 +177,8 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	// Create the pipeline
 	VkGraphicsPipelineCreateInfo pipeline_info{};
 	pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipeline_info.stageCount = static_cast<uint32_t>(stages.size());
-	pipeline_info.pStages = stages.data();
+	pipeline_info.stageCount = static_cast<uint32_t>(pipeline_config.p_stages->size());
+	pipeline_info.pStages = pipeline_config.p_stages->data();
 	pipeline_info.pVertexInputState = &vertex_input_info;
 	pipeline_info.pInputAssemblyState = &input_assembly;
 
@@ -189,19 +192,19 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 
 	pipeline_info.layout = return_pipeline.pipeline_layout_;
 
-	pipeline_info.renderPass = renderpass.handle();
+	pipeline_info.renderPass = pipeline_config.p_renderpass->handle();
 	pipeline_info.subpass = 0;
 	pipeline_info.basePipelineHandle = VK_NULL_HANDLE;
 	pipeline_info.basePipelineIndex = -1;
 
 	// Create the pipeline
 	result = vkCreateGraphicsPipelines(
-		return_pipeline.device_->get_logical_device(),
-		VK_NULL_HANDLE,
-		1,
-		&pipeline_info,
-		nullptr,
-		return_pipeline.handle_.ptr());
+			return_pipeline.device_->get_logical_device(),
+			VK_NULL_HANDLE,
+			1,
+			&pipeline_info,
+			nullptr,
+			return_pipeline.handle_.ptr());
 	if (result != VK_SUCCESS)
 	{
 		FLOWFORGE_ERROR("Failed to create graphics pipeline");
@@ -212,7 +215,7 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
 				return {Status::OUT_OF_DEVICE_MEMORY};
 			case VK_ERROR_INVALID_SHADER_NV:
-				return  {Status::INVALID_SHADER};
+				return {Status::INVALID_SHADER};
 			default:
 				return {Status::UNKNOWN_ERROR};
 		}

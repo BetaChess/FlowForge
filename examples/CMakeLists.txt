@@ -5,3 +5,4 @@ project(Examples)
 # Example projects
 add_subdirectory(imgui_demo)
 add_subdirectory(simple_square)
+add_subdirectory(texture_demo)

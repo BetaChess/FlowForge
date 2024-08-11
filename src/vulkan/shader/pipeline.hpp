@@ -2,9 +2,9 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "vulkan/util/status_optional.hpp"
 #include "vulkan/descriptor.hpp"
 #include "vulkan/render_pass.hpp"
+#include "vulkan/util/status_optional.hpp"
 
 namespace flwfrg::vk
 {
@@ -13,6 +13,17 @@ class Device;
 
 class Pipeline
 {
+public:
+	struct PipelineConfig {
+		const RenderPass *p_renderpass;
+		const std::vector<VkVertexInputAttributeDescription> *p_attributes;
+		const std::vector<VkDescriptorSetLayout> *p_descriptor_set_layouts;
+		const std::vector<VkPipelineShaderStageCreateInfo> *p_stages;
+		VkViewport viewport;
+		VkRect2D scissor;
+		uint32_t vertex_stride;
+	};
+
 public:
 	Pipeline() = default;
 	~Pipeline();
@@ -36,12 +47,7 @@ public:
 
 	static StatusOptional<Pipeline, Status, Status::SUCCESS> create_pipeline(
 			Device *device,
-			const RenderPass &renderpass,
-			const std::vector<VkVertexInputAttributeDescription> &attributes,
-			const std::vector<VkDescriptorSetLayout> &descriptor_set_layouts,
-			const std::vector<VkPipelineShaderStageCreateInfo> &stages,
-			VkViewport viewport,
-			VkRect2D scissor,
+			PipelineConfig pipeline_config,
 			bool is_wireframe);
 
 private:

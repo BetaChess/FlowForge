@@ -31,7 +31,7 @@ target_link_libraries(${PROJECT_NAME}
 
 add_custom_target(
         ${PROJECT_NAME}_shaders
-        DEPENDS ${flowforge_lib_shaders}
+        DEPENDS ${flowforge_lib}
 )
 
 add_custom_command(
