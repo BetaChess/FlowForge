@@ -16,7 +16,7 @@ set_target_properties(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME}
-        PUBLIC ../../include
+        PUBLIC ../../src/
 )
 
 target_link_directories(${PROJECT_NAME}

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "display_context.hpp"
-#include "../glfw_context.hpp"
+#include "glfw_context.hpp"
 #include "util/status_optional.hpp"
 #include "window.hpp"
 

@@ -10,7 +10,7 @@ namespace flwfrg::vk
 
 
 Buffer::Buffer(Device* device, uint64_t size, VkBufferUsageFlagBits usage, uint32_t memory_property_flags, bool bind_on_create)
-	: device_{device}
+	: device_{device}, total_size_{size}, usage_{usage}, memory_property_flags_{memory_property_flags}
 {
 	assert(device != nullptr);
 
@@ -118,6 +118,15 @@ void Buffer::load_data(const void *data, uint64_t offset, uint64_t size, uint32_
 	void *mapped_memory = lock_memory(offset, size, flags);
 	memcpy(mapped_memory, data, size);
 	unlock_memory();
+}
+
+void Buffer::upload_data(const void *data, uint64_t offset, uint64_t size, VkCommandPool pool, VkFence fence, VkQueue queue)
+{
+	VkBufferCreateFlags create_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	Buffer staging_buffer{device_, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, create_flags, true};
+
+	staging_buffer.load_data(data, 0, size, 0);
+	staging_buffer.copy_to(*this, offset, size, 0, pool, fence, queue);
 }
 
 void Buffer::copy_to(Buffer &dst, uint64_t dst_offset, uint64_t dst_size, uint64_t src_offset, VkCommandPool pool, VkFence fence, VkQueue queue)

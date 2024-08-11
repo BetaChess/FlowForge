@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../descriptor.hpp"
+#include "vulkan/descriptor.hpp"
 
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>

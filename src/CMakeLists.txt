@@ -17,7 +17,7 @@ set(SOURCES
         ${IMGUI_SOURCES}
         #Project sources
         pch.hpp
-        ../include/flowforge.hpp
+        flowforge.hpp
         logging/logger.hpp
         logging/logger.cpp
         glfw_context.hpp
@@ -64,6 +64,10 @@ set(SOURCES
         vulkan/renderer.cpp
         vulkan/debug_messenger.hpp
         vulkan/debug_messenger.cpp
+        vulkan/shader/default/material_shader.hpp
+        vulkan/shader/default/material_shader.cpp
+        vulkan/shader/default/material_object_types.inl
+        default_shaders.hpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
@@ -101,3 +105,51 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 include_directories(.)
+
+############## Build SHADERS #######################
+
+# Find all vertex and fragment sources within shaders directory
+# taken from VBlancos vulkan tutorial
+# https://github.com/vblanco20-1/vulkan-guide/blob/all-chapters/CMakeLists.txt
+find_program(GLSL_VALIDATOR glslangValidator HINTS
+        ${Vulkan_GLSLANG_VALIDATOR_EXECUTABLE}
+        /usr/bin
+        /usr/local/bin
+        ${VULKAN_SDK_PATH}/Bin
+        ${VULKAN_SDK_PATH}/Bin32
+        $ENV{VULKAN_SDK}/Bin/
+        $ENV{VULKAN_SDK}/Bin32/
+)
+
+# get all .vert and .frag files in shaders directory
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+        "../assets/shaders/*.frag"
+        "../assets/shaders/*.vert"
+)
+
+message("${GLSL_SOURCE_FILES}")
+
+foreach (GLSL ${GLSL_SOURCE_FILES})
+    get_filename_component(FILE_NAME ${GLSL} NAME)
+    set(SPIRV "${PROJECT_SOURCE_DIR}/../assets/shaders/${FILE_NAME}.spv")
+    add_custom_command(
+            OUTPUT ${SPIRV}
+            COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
+            DEPENDS ${GLSL})
+    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach (GLSL)
+
+add_custom_target(
+        ${PROJECT_NAME}_shaders
+        SOURCES ${GLSL_SOURCE_FILES}
+        DEPENDS ${SPIRV_BINARY_FILES}
+)
+
+add_custom_command(
+        TARGET ${PROJECT_NAME}_shaders POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_DIR}/../assets/shaders ${CMAKE_CURRENT_BINARY_DIR}/assets/shaders
+        COMMENT "Copying shaders" VERBATIM
+)
+
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_shaders)

@@ -35,7 +35,20 @@ public:
 
 	void bind(uint64_t offset);
 
+	/// Loads data into the buffer, provided the buffer is host visible. Else throws an exception.
+	/// @param data Data to be loaded into the buffer object
+	/// @param offset Offset to load the data into
+	/// @param size The amount of data to upload (in bytes)
+	/// @param flags Additional memory mapping flags (Specified with VkMemoryMapFlagBits)
 	void load_data(const void *data, uint64_t offset, uint64_t size, uint32_t flags);
+
+	/// Loads data into the buffer using a staging buffer. The buffer is therefore not required to be host visible.
+	/// This method is generally not desirable to use, since it creates a temporary buffer on each use.
+	/// This may however be fine for some use-cases, which is why the option is provided.
+	/// @param data Data to be loaded into the buffer object
+	/// @param offset Offset to load the data into
+	/// @param size The amount of data to upload (in bytes)
+	void upload_data(const void* data, uint64_t offset, uint64_t size, VkCommandPool pool, VkFence fence, VkQueue queue);
 
 	void copy_to(Buffer &dst,
 				 uint64_t dst_offset,

@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include "../util/status_optional.hpp"
+#include "vulkan/util/status_optional.hpp"
 #include "vulkan/descriptor.hpp"
 #include "vulkan/render_pass.hpp"
 

@@ -195,4 +195,38 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 
 	return return_texture;
 }
+
+StatusOptional<Texture, Status, Status::SUCCESS> Texture::generate_default_texture(Device *device)
+{
+	// Create a 256 by 256 default texture
+	constexpr uint32_t texture_width = 256;
+	constexpr uint32_t texture_height = 256;
+
+	std::vector<uint8_t> texture_data;
+	constexpr uint8_t channel_count = 4;
+	texture_data.resize(texture_width * texture_height * channel_count);
+
+	// constexpr Texture::Data purple = {.color = {200.f / 255.0f, 0.f, 200.f / 255.0f, 1}};
+	// constexpr Texture::Data black = {.color = {0, 0, 0, 1.f}};
+
+	constexpr glm::i8vec4 purple = {200, 0, 200, 255};
+	constexpr glm::i8vec4 black = {0, 0, 0, 255};
+
+	for (size_t x = 0; x < texture_width; x++)
+	{
+		const uint8_t xsector = x / 8;
+		for (size_t y = 0; y < texture_height; y++)
+		{
+			const uint8_t ysector = x / 8;
+
+			texture_data[x + y * texture_width + 0] = (xsector + ysector) % 2 ? purple[0] : black[0];
+			texture_data[x + y * texture_width + 1] = (xsector + ysector) % 2 ? purple[1] : black[1];
+			texture_data[x + y * texture_width + 2] = (xsector + ysector) % 2 ? purple[2] : black[2];
+			texture_data[x + y * texture_width + 3] = (xsector + ysector) % 2 ? purple[3] : black[3];
+		}
+	}
+
+	return create_texture(device, 0, texture_width, texture_height, channel_count, false, texture_data);
+	// default_texture_ = std::move(VulkanTexture(context_, 0, texture_width, texture_height, false, texture_data));
+}
 }// namespace flwfrg::vk

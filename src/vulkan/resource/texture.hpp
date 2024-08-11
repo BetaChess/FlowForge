@@ -48,6 +48,8 @@ public:
 			bool has_transparency,
 			std::vector<uint8_t> data);
 
+	static StatusOptional<Texture, Status, Status::SUCCESS> generate_default_texture(Device *device);
+
 private:
 	Device *device_ = nullptr;
 

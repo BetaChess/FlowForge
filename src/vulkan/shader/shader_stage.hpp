@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../util/status_optional.hpp"
+#include "vulkan/util/status_optional.hpp"
 #include "vulkan/util/handle.hpp"
 
 #include <vulkan/vulkan_core.h>
