@@ -4,16 +4,16 @@
 int main()
 {
 	flwfrg::init();
-	flwfrg::vk::Renderer renderer{1000, 600, "TestName"};
+	flwfrg::vk::Renderer renderer{1000, 600, "Simple Square Demo"};
 	auto &display_context = renderer.get_display_context();
 	flwfrg::vk::shader::SimpleShader simple_shader(&renderer.get_display_context());
 
 	std::array<flwfrg::vk::shader::SimpleShader::Vertex, 4> vertices{};
-	vertices[0].position = {0.0, 0.5, 0};
+	vertices[0].position = {-0.5, 0.5, 0};
 	vertices[0].color = {1.0, 0.0, 0.0, 1.0};
 	vertices[1].position = {0.5, -0.5, 0};
 	vertices[1].color = {0.0, 1.0, 0.0, 1.0};
-	vertices[2].position = {0.0, -0.5, 0};
+	vertices[2].position = {-0.5, -0.5, 0};
 	vertices[2].color = {0.0, 0.0, 1.0, 1.0};
 	vertices[3].position = {0.5, 0.5, 0};
 
@@ -60,6 +60,7 @@ int main()
 		vkCmdBindVertexBuffers(frame_data.value()->get_handle(), 0, 1, vertex_buffer.ptr(), offsets);
 		vkCmdBindIndexBuffer(frame_data.value()->get_handle(), index_buffer.get_handle(), 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(frame_data.value()->get_handle(), indices.size(), 1, 0, 0, 0);
+
 
 		renderer.end_frame();
 	}
