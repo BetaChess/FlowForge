@@ -137,13 +137,13 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	VkPipelineLayoutCreateInfo pipeline_layout_info{};
 	pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-	// // Push constants
-	// VkPushConstantRange push_constant_range;
-	// push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	// push_constant_range.offset = sizeof(glm::mat4) * 0;
-	// push_constant_range.size = sizeof(glm::mat4) * 2;
-	// pipeline_layout_info.pushConstantRangeCount = 1;
-	// pipeline_layout_info.pPushConstantRanges = &push_constant_range;
+	// Push constants
+	VkPushConstantRange push_constant_range;
+	push_constant_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	push_constant_range.offset = sizeof(glm::mat4) * 0;
+	push_constant_range.size = sizeof(glm::mat4) * 2;
+	pipeline_layout_info.pushConstantRangeCount = 1;
+	pipeline_layout_info.pPushConstantRanges = &push_constant_range;
 
 	// Descriptor set layouts
 	if (pipeline_config.p_descriptor_set_layouts)

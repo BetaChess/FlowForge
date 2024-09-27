@@ -35,9 +35,9 @@ struct MaterialShaderObjectState
 
 struct GeometryRenderData
 {
-	uint32_t object_id;
+	// uint32_t object_id;
 	glm::mat4 model;
-	std::array<Texture*, 16> textures;
+	// std::array<Texture*, 16> textures;
 };
 
 struct GlobalUniformObject

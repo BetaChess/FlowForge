@@ -4,7 +4,7 @@
 int main()
 {
 	flwfrg::init();
-	flwfrg::vk::Renderer renderer{1000, 600, "Simple Square Demo"};
+	flwfrg::vk::Renderer renderer{600, 600, "Simple Square Demo"};
 	auto &display_context = renderer.get_display_context();
 	flwfrg::vk::shader::SimpleShader simple_shader(&renderer.get_display_context());
 

@@ -8,8 +8,6 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-set(FLOWFORGEROOT ../..)
-
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
         CXX_STANDARD 20
@@ -18,27 +16,23 @@ set_target_properties(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME}
-        PUBLIC ${FLOWFORGEROOT}/src/
+        PUBLIC ${FLOWFORGELIB_PATH}/src/
 )
 
 target_link_directories(${PROJECT_NAME}
-        PRIVATE ${FLOWFORGEROOT}/src/
+        PRIVATE ${FLOWFORGELIB_PATH}/src/
 )
 
 target_link_libraries(${PROJECT_NAME}
         flowforge_lib
 )
 
-add_custom_target(
-        ${PROJECT_NAME}_shaders
-        DEPENDS ${flowforge_lib}
-)
 
-add_custom_command(
-        TARGET ${PROJECT_NAME}_shaders POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${PROJECT_SOURCE_DIR}/${FLOWFORGEROOT}/assets/shaders ${CMAKE_CURRENT_BINARY_DIR}/assets/shaders
-        COMMENT "Copying shaders" VERBATIM
+############## Build shaders ##############
+
+add_shaders(${PROJECT_NAME}_shaders
+        ${FLOWFORGELIB_PATH}/assets/shaders/default_material_shader.vert
+        ${FLOWFORGELIB_PATH}/assets/shaders/default_material_shader.frag
 )
 
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_shaders)

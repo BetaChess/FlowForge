@@ -158,6 +158,7 @@ void Image::transition_layout(CommandBuffer &command_buffer, VkFormat format, Vk
 			0, nullptr,
 			1, &barrier);
 }
+
 void Image::copy_from_buffer(CommandBuffer &command_buffer, Buffer &buffer)
 {
 	// Region to copy

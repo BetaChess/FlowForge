@@ -70,6 +70,12 @@ set(SOURCES
         default_shaders.hpp
         vulkan/shader/default/simple_shader.hpp
         vulkan/shader/default/simple_shader.cpp
+        math/camera.hpp
+        math/camera.cpp
+        math/transform.hpp
+        math/transform.cpp
+        input/keyboard_controller.hpp
+        input/keyboard_controller.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
