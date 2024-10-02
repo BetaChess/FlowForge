@@ -35,9 +35,9 @@ struct MaterialShaderObjectState
 
 struct GeometryRenderData
 {
-	// uint32_t object_id;
+	uint32_t object_id;
 	glm::mat4 model;
-	// std::array<Texture*, 16> textures;
+	std::array<const Texture*, 16> textures;
 };
 
 struct GlobalUniformObject
@@ -50,7 +50,7 @@ struct GlobalUniformObject
 
 struct LocalUniformObject
 {
-	glm::vec4 diffuse_color = {1.0f, 1.0f, 1.0f, 1.0f};
+	glm::vec4 diffuse_color = {1.0f, 0.0f, 0.0f, 1.0f};
 	glm::vec4 _reserved0;
 	glm::vec4 _reserved1;
 	glm::vec4 _reserved2;

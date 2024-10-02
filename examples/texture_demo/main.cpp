@@ -20,9 +20,16 @@ int main()
 	std::array<flwfrg::vk::shader::MaterialShader::Vertex, 4> vertices{};
 	float scale = 5.0f;
 	vertices[0].position = glm::vec3{-0.5, 0.5, 0} * scale;
+	vertices[0].texture_coordinate = glm::vec2{0.0f, 0.0f};
+
 	vertices[1].position = glm::vec3{0.5, -0.5, 0} * scale;
+	vertices[1].texture_coordinate = glm::vec2{1.0f, 1.0f};
+
 	vertices[2].position = glm::vec3{-0.5, -0.5, 0} * scale;
+	vertices[2].texture_coordinate = glm::vec2{0.0f, 1.0f};
+
 	vertices[3].position = glm::vec3{0.5, 0.5, 0} * scale;
+	vertices[3].texture_coordinate = glm::vec2{1.0f, 0.0f};
 
 	std::array<uint32_t, 6> indices{};
 	indices[0] = 0;
@@ -56,11 +63,16 @@ int main()
 			nullptr,
 			display_context.get_device().get_graphics_queue());
 
+	// Acquire resources
+	auto object_id = material_shader.acquire_resources();
+	flwfrg::vk::shader::GeometryRenderData object_data{};
+	object_data.textures[0] = material_shader.get_default_texture();
+
 	flwfrg::KeyboardController controller;
 	flwfrg::Camera camera;
 	flwfrg::Transform camera_transform;
 	camera.set_perspective_projection(glm::radians(50.0f), 1200.0f / 720.0f, 0.1f, 1000.0f);
-	camera_transform.translation.z = -5;
+	camera_transform.translation.z = -10;
 
 	flwfrg::Transform object_transform;
 
@@ -73,12 +85,13 @@ int main()
 		im_gui_shader.begin_frame();
 
 		static float angle = 0.f;
-		angle += 0.01f;
+		// angle += 0.01f;
 		object_transform.rotation.z = angle;
 		controller.move_in_plane_XZ(display_context.get_window()->get_glfw_window_ptr(), camera_transform, 0.007);
 		camera.set_viewYXZ(camera_transform.translation, camera_transform.rotation);
 		material_shader.update_global_state(camera.get_projection(), camera.get_view());
-		material_shader.update_object({.model = object_transform.mat4()});
+		object_data.model = object_transform.mat4();
+		material_shader.update_object(object_data);
 
 		VkDeviceSize offsets[1] = {0};
 		vkCmdBindVertexBuffers(frame_data.value()->get_handle(), 0, 1, vertex_buffer.ptr(), offsets);
@@ -92,8 +105,10 @@ int main()
 		renderer.end_frame();
 	}
 
-	// material_shader.release_resources(objid);
+	material_shader.release_resources(object_id);
+
 	vkDeviceWaitIdle(display_context.get_device().get_logical_device());
+
 
 	return 0;
 }

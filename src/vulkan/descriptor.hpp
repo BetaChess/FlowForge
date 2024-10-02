@@ -35,7 +35,7 @@ class DescriptorSetLayout
 {
 public:
 	DescriptorSetLayout() = default;
-	DescriptorSetLayout(Device *device, VkDescriptorSetLayoutCreateInfo create_info);// TODO: Make custom create_info struct.
+	DescriptorSetLayout(Device *device, VkDescriptorSetLayoutCreateInfo create_info);// TODO: Make custom create_info struct. And maybe switch to return error style.
 	~DescriptorSetLayout();
 
 	// Copy

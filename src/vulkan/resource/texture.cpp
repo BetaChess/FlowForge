@@ -13,6 +13,8 @@ namespace flwfrg::vk
 
 Texture::~Texture()
 {
+	vkDeviceWaitIdle(device_->get_logical_device());
+
 	if (sampler_.not_null())
 	{
 		vkDestroySampler(device_->get_logical_device(), sampler_, nullptr);
@@ -99,6 +101,7 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 	return_texture.channel_count_ = channel_count;
 	return_texture.has_transparency_ = has_transparency;
 	return_texture.data_ = std::move(data);
+	return_texture.generation_ = constant::invalid_generation;
 
 	VkDeviceSize image_size = return_texture.width_ * return_texture.height_ * return_texture.channel_count_;
 
@@ -109,16 +112,16 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 	switch (return_texture.channel_count_)
 	{
 		case 1:
-			image_format = VK_FORMAT_R8_UINT;
+			image_format = VK_FORMAT_R8_UNORM;
 			break;
 		case 2:
-			image_format = VK_FORMAT_R8G8_UINT;
+			image_format = VK_FORMAT_R8G8_UNORM;
 			break;
 		case 3:
-			image_format = VK_FORMAT_R8G8B8_UINT;
+			image_format = VK_FORMAT_R8G8B8_UNORM;
 			break;
 		case 4:
-			image_format = VK_FORMAT_R8G8B8A8_UINT;
+			image_format = VK_FORMAT_R8G8B8A8_UNORM;
 			break;
 		default:
 			return Status::FLOWFORGE_UNSUPPORTED_CHANNEL_COUNT;
@@ -144,7 +147,7 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 	VkQueue queue = return_texture.device_->get_graphics_queue();
 	CommandBuffer temp_buffer = CommandBuffer::begin_single_time_commands(return_texture.device_, pool);
 
-	// Transition the layout to the optimal for recieving data
+	// Transition the layout to the optimal for receiving data
 	return_texture.image_.transition_layout(temp_buffer, image_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 	// Copy data from the buffer
@@ -191,7 +194,7 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 		}
 	}
 
-	return_texture.generation_++;
+	return_texture.generation_ = 0;
 
 	return return_texture;
 }
@@ -209,20 +212,23 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::generate_default_textu
 	// constexpr Texture::Data purple = {.color = {200.f / 255.0f, 0.f, 200.f / 255.0f, 1}};
 	// constexpr Texture::Data black = {.color = {0, 0, 0, 1.f}};
 
-	constexpr glm::i8vec4 purple = {200, 0, 200, 255};
-	constexpr glm::i8vec4 black = {0, 0, 0, 255};
+	// constexpr glm::vec4 purple = {200.0f / 255.0f, 0, 200.0f / 255.0f, 255.0f / 255.0f};
+	// constexpr glm::vec4 black = {0, 0, 0, 255.0f / 255.0f};
+	constexpr glm::ivec4 purple = {200, 0, 200, 255};
+	constexpr glm::ivec4 black = {0, 0, 0, 255};
 
-	for (size_t x = 0; x < texture_width; x++)
+	for (size_t y = 0; y < texture_height; y++)
 	{
-		const uint8_t xsector = x / 8;
-		for (size_t y = 0; y < texture_height; y++)
+		const uint32_t ysector = static_cast<uint32_t>(y) / 8;
+		for (size_t x = 0; x < texture_width; x++)
 		{
-			const uint8_t ysector = x / 8;
+			const uint32_t xsector = static_cast<uint32_t>(x) / 8;
+			auto t = (xsector + ysector);
 
-			texture_data[x + y * texture_width + 0] = (xsector + ysector) % 2 ? purple[0] : black[0];
-			texture_data[x + y * texture_width + 1] = (xsector + ysector) % 2 ? purple[1] : black[1];
-			texture_data[x + y * texture_width + 2] = (xsector + ysector) % 2 ? purple[2] : black[2];
-			texture_data[x + y * texture_width + 3] = (xsector + ysector) % 2 ? purple[3] : black[3];
+			texture_data[x * channel_count + y * channel_count * texture_width + 0] = (xsector + ysector) % 2 ? purple[0] : black[0];
+			texture_data[x * channel_count + y * channel_count * texture_width + 1] = (xsector + ysector) % 2 ? purple[1] : black[1];
+			texture_data[x * channel_count + y * channel_count * texture_width + 2] = (xsector + ysector) % 2 ? purple[2] : black[2];
+			texture_data[x * channel_count + y * channel_count * texture_width + 3] = (xsector + ysector) % 2 ? purple[3] : black[3];
 		}
 	}
 

@@ -247,6 +247,47 @@ MaterialShader::MaterialShader(DisplayContext *context)
 
 	global_descriptor_pool_ = DescriptorPool(&context_->get_device(), global_pool_info);
 
+	// Local/object descriptors
+	const uint32_t local_sampler_count = 1;
+	std::array<VkDescriptorType, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> descriptor_types
+	{
+		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+	};
+	std::array<VkDescriptorSetLayoutBinding, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> bindings{};
+	for (uint32_t i = 0; i < VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT; i++)
+	{
+		bindings[i].binding = i;
+		bindings[i].descriptorCount = 1;
+		bindings[i].descriptorType = descriptor_types[i];
+		bindings[i].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	}
+
+	VkDescriptorSetLayoutCreateInfo layout_create_info{};
+	layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layout_create_info.bindingCount = bindings.size();
+	layout_create_info.pBindings = bindings.data();
+
+	local_descriptor_set_layout_ = DescriptorSetLayout(&context_->get_device(), layout_create_info);
+
+	// Local layout pool
+	std::array<VkDescriptorPoolSize, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> local_pool_sizes{};
+	local_pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	local_pool_sizes[0].descriptorCount = VULKAN_MATERIAL_SHADER_MAX_OBJECT_COUNT;
+
+	local_pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	local_pool_sizes[1].descriptorCount = local_sampler_count * VULKAN_MATERIAL_SHADER_MAX_OBJECT_COUNT;
+
+	VkDescriptorPoolCreateInfo local_pool_info{};
+	local_pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	local_pool_info.poolSizeCount = local_pool_sizes.size();
+	local_pool_info.pPoolSizes = local_pool_sizes.data();
+	local_pool_info.maxSets = VULKAN_MATERIAL_SHADER_MAX_OBJECT_COUNT;
+	local_pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+	// Create local/object descriptor pool
+	local_descriptor_pool_ = DescriptorPool(&context_->get_device(), local_pool_info);
+
 	// Pipeline creation
 	VkViewport viewport{};
 	viewport.x = 0.0f;
@@ -264,8 +305,11 @@ MaterialShader::MaterialShader(DisplayContext *context)
 	auto binding_description = MaterialShader::Vertex::get_binding_description();
 
 	// Descriptor set layouts
-	std::vector<VkDescriptorSetLayout> descriptor_set_layouts{
-			global_descriptor_set_layout_.handle()};
+	// TODO: Change this to not be vector
+	std::vector<VkDescriptorSetLayout> descriptor_set_layouts {
+			global_descriptor_set_layout_.handle(),
+			local_descriptor_set_layout_.handle()
+	};
 
 
 	// Stages
@@ -279,7 +323,7 @@ MaterialShader::MaterialShader(DisplayContext *context)
 	Pipeline::PipelineConfig pipeline_config{};
 	pipeline_config.p_renderpass = &context_->get_main_render_pass();
 	pipeline_config.p_attributes = &binding_description;
-	pipeline_config.p_descriptor_set_layouts = &descriptor_set_layouts;
+	pipeline_config.p_descriptor_set_layouts = &descriptor_set_layouts; // TODO: also needs changing here
 	pipeline_config.p_stages = &stage_create_infos;
 	pipeline_config.viewport = viewport;
 	pipeline_config.scissor = scissor;
@@ -322,6 +366,18 @@ MaterialShader::MaterialShader(DisplayContext *context)
 	{
 		throw std::runtime_error("Failed to allocate descriptor sets");
 	}
+
+	local_uniform_buffer_ = Buffer(&context_->get_device(),
+								   sizeof(LocalUniformObject) * VULKAN_MATERIAL_SHADER_MAX_OBJECT_COUNT,
+								   static_cast<VkBufferUsageFlagBits>(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT),
+								   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, true);
+
+
+	// Generate default texture
+	auto opt_result = Texture::generate_default_texture(&context_->get_device());
+	if (!opt_result.has_value())
+		throw std::runtime_error("Failed to generate default texture");
+	default_texture_ = std::move(opt_result.value());
 }
 
 void MaterialShader::update_global_state(glm::mat4 projection, glm::mat4 view)
@@ -382,98 +438,98 @@ void MaterialShader::update_object(GeometryRenderData data)
 
 	vkCmdPushConstants(command_buffer.get_handle(), pipeline_.layout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &data.model);
 
-	// // Obtain material data
-	// MaterialShaderObjectState *object_state = &object_states_[data.object_id];
-	// VkDescriptorSet object_descriptor_set = object_state->descriptor_sets[image_index];
-	//
-	// // Todo: check if it actually needs to update
-	// std::array<VkWriteDescriptorSet, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> descriptor_writes{};
-	// uint32_t descriptor_count = 0;
-	// uint32_t descriptor_index = 0;
-	//
-	// // Descriptor 0
-	// uint32_t range = sizeof(LocalUniformObject);
-	// uint64_t offset = sizeof(LocalUniformObject) * data.object_id;
-	// LocalUniformObject lbo;
-	//
-	// // Todo: get diffuse color from material
-	//
-	// local_uniform_buffer_.load_data(&lbo, offset, range, 0);
-	//
-	// // Only update if the descriptor hasn't already been updated
-	// if (object_state->descriptor_states[descriptor_index].generations[image_index] == constant::invalid_id)
-	// {
-	// 	VkDescriptorBufferInfo buffer_info{};
-	// 	buffer_info.buffer = local_uniform_buffer_.get_handle();
-	// 	buffer_info.offset = offset;
-	// 	buffer_info.range = range;
-	//
-	// 	descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	// 	descriptor_writes[descriptor_count].dstSet = object_descriptor_set;
-	// 	descriptor_writes[descriptor_count].dstBinding = descriptor_index;
-	// 	descriptor_writes[descriptor_count].dstArrayElement = 0;
-	// 	descriptor_writes[descriptor_count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	// 	descriptor_writes[descriptor_count].descriptorCount = 1;
-	// 	descriptor_writes[descriptor_count].pBufferInfo = &buffer_info;
-	//
-	// 	descriptor_count++;
-	// 	object_state->descriptor_states[descriptor_index].generations[image_index] = 1;
-	// }
-	// descriptor_index++;
-	//
-	// const uint32_t sampler_count = 1;
-	// std::array<VkDescriptorImageInfo, 1> image_infos{};
-	// for (uint32_t sampler_index = 0; sampler_index < sampler_count; sampler_index++)
-	// {
-	// 	Texture* texture = data.textures[sampler_index];
-	// 	auto& descriptor_generation = object_state->descriptor_states[descriptor_index].generations[image_index];
-	//
-	// 	if (texture == nullptr || texture->get_generation() == constant::invalid_generation)
-	// 	{
-	// 		texture = &default_texture_;
-	//
-	// 		descriptor_generation = constant::invalid_generation;
-	// 	}
-	//
-	// 	if (texture && (descriptor_generation != texture->get_generation() || descriptor_generation == constant::invalid_generation))
-	// 	{
-	// 		image_infos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// 		image_infos[0].imageView = texture->get_image().get_image_view();
-	// 		image_infos[0].sampler = texture->get_sampler();
-	//
-	// 		descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	// 		descriptor_writes[descriptor_count].dstSet = object_descriptor_set;
-	// 		descriptor_writes[descriptor_count].dstBinding = descriptor_index;
-	// 		descriptor_writes[descriptor_count].dstArrayElement = 0;
-	// 		descriptor_writes[descriptor_count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	// 		descriptor_writes[descriptor_count].descriptorCount = image_infos.size();
-	// 		descriptor_writes[descriptor_count].pImageInfo = image_infos.data();
-	//
-	// 		descriptor_count++;
-	// 		object_state->descriptor_states[descriptor_index].generations[image_index] = texture->get_generation();
-	//
-	// 		// If not using default texture, sync the generation.
-	// 		if (texture->get_generation() != constant::invalid_generation) {
-	// 			descriptor_generation = texture->get_generation();
-	// 		}
-	// 		descriptor_index++;
-	// 	}
-	// }
-	//
-	// if (descriptor_count > 0)
-	// {
-	// 	vkUpdateDescriptorSets(context_->get_device().get_logical_device(), descriptor_count, descriptor_writes.data(), 0, nullptr);
-	// }
-	//
-	// // Bind descriptor set
-	// vkCmdBindDescriptorSets(command_buffer.get_handle(),
-	// 						VK_PIPELINE_BIND_POINT_GRAPHICS,
-	// 						pipeline_.layout(),
-	// 						1,
-	// 						1,
-	// 						&object_descriptor_set,
-	// 						0,
-	// 						nullptr);
+	// Obtain material data
+	MaterialShaderObjectState *object_state = &object_states_[data.object_id];
+	VkDescriptorSet object_descriptor_set = object_state->descriptor_sets[image_index];
+
+	// Todo: check if it actually needs to update
+	std::array<VkWriteDescriptorSet, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> descriptor_writes{};
+	uint32_t descriptor_count = 0;
+	uint32_t descriptor_index = 0;
+
+	// Descriptor 0
+	uint32_t range = sizeof(LocalUniformObject);
+	uint64_t offset = sizeof(LocalUniformObject) * data.object_id;
+	LocalUniformObject lbo;
+
+	// Todo: get diffuse color from material
+
+	local_uniform_buffer_.load_data(&lbo, offset, range, 0);
+
+	// Only update if the descriptor hasn't already been updated
+	if (object_state->descriptor_states[descriptor_index].generations[image_index] == constant::invalid_id)
+	{
+		VkDescriptorBufferInfo buffer_info{};
+		buffer_info.buffer = local_uniform_buffer_.get_handle();
+		buffer_info.offset = offset;
+		buffer_info.range = range;
+
+		descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptor_writes[descriptor_count].dstSet = object_descriptor_set;
+		descriptor_writes[descriptor_count].dstBinding = descriptor_index;
+		descriptor_writes[descriptor_count].dstArrayElement = 0;
+		descriptor_writes[descriptor_count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptor_writes[descriptor_count].descriptorCount = 1;
+		descriptor_writes[descriptor_count].pBufferInfo = &buffer_info;
+
+		descriptor_count++;
+		object_state->descriptor_states[descriptor_index].generations[image_index] = 1;
+	}
+	descriptor_index++;
+
+	const uint32_t sampler_count = 1;
+	std::array<VkDescriptorImageInfo, 1> image_infos{};
+	for (uint32_t sampler_index = 0; sampler_index < sampler_count; sampler_index++)
+	{
+		const Texture* texture = data.textures[sampler_index];
+		auto& descriptor_generation = object_state->descriptor_states[descriptor_index].generations[image_index];
+
+		// if (texture == nullptr || texture->get_generation() == constant::invalid_generation)
+		// {
+		// 	texture = &default_texture_;
+		//
+		// 	descriptor_generation = constant::invalid_generation;
+		// }
+
+		if (texture && (descriptor_generation != texture->get_generation() || descriptor_generation == constant::invalid_generation))
+		{
+			image_infos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			image_infos[0].imageView = texture->get_image().get_image_view();
+			image_infos[0].sampler = texture->get_sampler();
+
+			descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptor_writes[descriptor_count].dstSet = object_descriptor_set;
+			descriptor_writes[descriptor_count].dstBinding = descriptor_index;
+			descriptor_writes[descriptor_count].dstArrayElement = 0;
+			descriptor_writes[descriptor_count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptor_writes[descriptor_count].descriptorCount = image_infos.size();
+			descriptor_writes[descriptor_count].pImageInfo = image_infos.data();
+
+			descriptor_count++;
+			object_state->descriptor_states[descriptor_index].generations[image_index] = texture->get_generation();
+
+			// If not using default texture, sync the generation.
+			if (texture->get_generation() != constant::invalid_generation) {
+				descriptor_generation = texture->get_generation();
+			}
+			descriptor_index++;
+		}
+	}
+
+	if (descriptor_count > 0)
+	{
+		vkUpdateDescriptorSets(context_->get_device().get_logical_device(), descriptor_count, descriptor_writes.data(), 0, nullptr);
+	}
+
+	// Bind descriptor set
+	vkCmdBindDescriptorSets(command_buffer.get_handle(),
+							VK_PIPELINE_BIND_POINT_GRAPHICS,
+							pipeline_.layout(),
+							1,
+							1,
+							&object_descriptor_set,
+							0,
+							nullptr);
 }
 
 void MaterialShader::use()
@@ -481,66 +537,68 @@ void MaterialShader::use()
 	pipeline_.bind(context_->get_command_buffer(), VK_PIPELINE_BIND_POINT_GRAPHICS);
 }
 
-// uint32_t MaterialShader::acquire_resources()
-// {
-// 	// TODO: free list
-// 	uint32_t object_id = object_uniform_buffer_index;
-// 	object_uniform_buffer_index++;
-//
-// 	auto &object_state = object_states_[object_id];
-// 	for (DescriptorState &descriptor_state: object_state.descriptor_states)
-// 	{
-// 		for (uint32_t &generation: descriptor_state.generations)
-// 		{
-// 			generation = constant::invalid_generation;
-// 		}
-// 	}
-//
-// 	// Allocate descriptor sets
-// 	std::array<VkDescriptorSetLayout, 3> layouts = {
-// 		local_descriptor_set_layout_.handle(),
-// 		local_descriptor_set_layout_.handle(),
-// 		local_descriptor_set_layout_.handle()};
-//
-// 	VkDescriptorSetAllocateInfo alloc_info{};
-// 	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-// 	alloc_info.descriptorPool = local_descriptor_pool_.handle();
-// 	alloc_info.descriptorSetCount = layouts.size();
-// 	alloc_info.pSetLayouts = layouts.data();
-//
-// 	// Do the allocation and check the result
-// 	if (vkAllocateDescriptorSets(context_->get_device().get_logical_device(), &alloc_info, object_state.descriptor_sets.data()) != VK_SUCCESS)
-// 	{
-// 		throw std::runtime_error("Failed to allocate descriptor sets");
-// 	}
-//
-// 	return object_id;
-// }
-//
-// void MaterialShader::release_resources(uint32_t object_id)
-// {
-// 	MaterialShaderObjectState &object_state = object_states_[object_id];
-//
-// 	// Free the descriptor sets of the object state and check the resutl
-// 	if (vkFreeDescriptorSets(context_->get_device().get_logical_device(),
-// 							 local_descriptor_pool_.handle(),
-// 							 object_state.descriptor_sets.size(),
-// 							 object_state.descriptor_sets.data()) != VK_SUCCESS)
-// 	{
-// 		throw std::runtime_error("Failed to free descriptor sets");
-// 	}
-//
-// 	// set generations to an invalid state
-// 	for (DescriptorState &descriptor_state: object_state.descriptor_states)
-// 	{
-// 		for (uint32_t &generation: descriptor_state.generations)
-// 		{
-// 			generation = constant::invalid_generation;
-// 		}
-// 	}
-//
-//
-// 	// TODO: add the object id back into the pool
-// }
+uint32_t MaterialShader::acquire_resources()
+{
+	// TODO: free list
+	uint32_t object_id = object_uniform_buffer_index;
+	object_uniform_buffer_index++;
+
+	auto &object_state = object_states_[object_id];
+	for (DescriptorState &descriptor_state: object_state.descriptor_states)
+	{
+		for (uint32_t &generation: descriptor_state.generations)
+		{
+			generation = constant::invalid_generation;
+		}
+	}
+
+	// Allocate descriptor sets
+	std::array<VkDescriptorSetLayout, 3> layouts = {
+		local_descriptor_set_layout_.handle(),
+		local_descriptor_set_layout_.handle(),
+		local_descriptor_set_layout_.handle()};
+
+	VkDescriptorSetAllocateInfo alloc_info{};
+	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	alloc_info.descriptorPool = local_descriptor_pool_.handle();
+	alloc_info.descriptorSetCount = layouts.size();
+	alloc_info.pSetLayouts = layouts.data();
+
+	// Do the allocation and check the result
+	if (vkAllocateDescriptorSets(context_->get_device().get_logical_device(), &alloc_info, object_state.descriptor_sets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate descriptor sets");
+	}
+
+	return object_id;
+}
+
+void MaterialShader::release_resources(uint32_t object_id)
+{
+	MaterialShaderObjectState &object_state = object_states_[object_id];
+
+	vkDeviceWaitIdle(context_->get_device().get_logical_device());
+
+	// Free the descriptor sets of the object state and check the result
+	if (vkFreeDescriptorSets(context_->get_device().get_logical_device(),
+							 local_descriptor_pool_.handle(),
+							 object_state.descriptor_sets.size(),
+							 object_state.descriptor_sets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to free descriptor sets");
+	}
+
+	// set generations to an invalid state
+	for (DescriptorState &descriptor_state: object_state.descriptor_states)
+	{
+		for (uint32_t &generation: descriptor_state.generations)
+		{
+			generation = constant::invalid_generation;
+		}
+	}
+
+
+	// TODO: add the object id back into the pool
+}
 
 }// namespace flwfrg::vk::shader

@@ -20,6 +20,7 @@ class MaterialShader
 public:
 	struct Vertex {
 		glm::vec3 position{0};
+		alignas(glm::vec4) glm::vec2 texture_coordinate;
 		// alignas(sizeof(glm::vec4)) glm::vec4 color{1};
 
 		static inline std::vector<VkVertexInputAttributeDescription> get_binding_description()
@@ -27,6 +28,7 @@ public:
 			std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
 			attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
+			attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texture_coordinate)});
 			// attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, color)});
 
 			return attributeDescriptions;
@@ -48,13 +50,15 @@ public:
 	// Methods
 
 	// [[nodiscard]] const DescriptorPool &get_global_descriptor_pool() const { return global_descriptor_pool_; };
+	[[nodiscard]] const Texture* get_default_texture() const { return &default_texture_; };
+
 	void update_global_state(glm::mat4 projection, glm::mat4 view);
 	void update_object(GeometryRenderData data);
 
 	void use();
 
-	// [[nodiscard]] uint32_t acquire_resources();
-	// void release_resources(uint32_t object_id);
+	[[nodiscard]] uint32_t acquire_resources();
+	void release_resources(uint32_t object_id);
 
 private:
 	DisplayContext *context_ = nullptr;
@@ -63,8 +67,8 @@ private:
 
 	DescriptorPool global_descriptor_pool_{};
 	DescriptorSetLayout global_descriptor_set_layout_{};
-	// DescriptorPool local_descriptor_pool_{};
-	// DescriptorSetLayout local_descriptor_set_layout_{};
+	DescriptorPool local_descriptor_pool_{};
+	DescriptorSetLayout local_descriptor_set_layout_{};
 
 	// One set per frame (max 3)
 	std::array<VkDescriptorSet, 3> global_descriptor_sets_{};
@@ -75,14 +79,14 @@ private:
 	Buffer global_uniform_buffer_{};
 
 	// local object uniform buffer
-	// Buffer local_uniform_buffer_{};
-	// uint32_t object_uniform_buffer_index = 0; // Todo: manage a free list instead
+	Buffer local_uniform_buffer_{};
+	uint32_t object_uniform_buffer_index = 0; // Todo: manage a free list instead
 
-	// std::array<MaterialShaderObjectState, VULKAN_MATERIAL_SHADER_MAX_OBJECT_COUNT> object_states_{}; // Todo: Make dynamic later
+	std::array<MaterialShaderObjectState, VULKAN_MATERIAL_SHADER_MAX_OBJECT_COUNT> object_states_{}; // Todo: Make dynamic later
 
 	Pipeline pipeline_{};
 
-	// Texture default_texture_;
+	Texture default_texture_;
 
 	// Static members
 
