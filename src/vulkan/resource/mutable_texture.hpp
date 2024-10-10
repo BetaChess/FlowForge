@@ -6,7 +6,7 @@
 namespace flwfrg::vk
 {
 
-class MutableTexture : Texture
+class MutableTexture : public Texture
 {
 public:
 	MutableTexture() = default;
