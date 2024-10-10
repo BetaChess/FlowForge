@@ -26,7 +26,6 @@ CommandBuffer::CommandBuffer(Device *device, VkCommandPool pool, bool is_primary
 
 	pool_handle_ = pool;
 	state_ = State::READY;
-	FLOWFORGE_TRACE("Command buffer created successfully");
 }
 
 CommandBuffer::~CommandBuffer()
@@ -34,7 +33,6 @@ CommandBuffer::~CommandBuffer()
 	if (state_ != State::NOT_ALLOCATED)
 	{
 		vkFreeCommandBuffers(device_->get_logical_device(), pool_handle_, 1, handle_.ptr());
-		FLOWFORGE_TRACE("Command buffer destroyed");
 	}
 }
 

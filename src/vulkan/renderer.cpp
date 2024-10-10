@@ -81,14 +81,14 @@ Renderer::RendererStatus Renderer::end_frame()
 	command_buffer.end();
 
 	// Wait for the previous frame to not use the image
-	if (auto *fence = display_context_.get_image_index_frame_fence_in_flight())
-	{
-		if (!fence->wait(std::numeric_limits<uint64_t>::max()))
-		{
-			FLOWFORGE_WARN("Failed to wait for image index fence in flight");
-			return RendererStatus::FAILED_TO_WAIT_ON_FENCE;
-		}
-	}
+	// if (auto *fence = display_context_.get_image_index_frame_fence_in_flight())
+	// {
+	// 	if (!fence->wait(std::numeric_limits<uint64_t>::max()))
+	// 	{
+	// 		FLOWFORGE_WARN("Failed to wait for image index fence in flight");
+	// 		return RendererStatus::FAILED_TO_WAIT_ON_FENCE;
+	// 	}
+	// }
 
 	// Set the fence as image in flight
 	display_context_.images_in_flight_[display_context_.image_index_] = &display_context_.get_current_frame_fence_in_flight();

@@ -24,15 +24,28 @@ StatusOptional<MutableTexture, Status, Status::SUCCESS> MutableTexture::create_m
 	VkDeviceSize image_size = return_texture.width_ * return_texture.height_ * return_texture.channel_count_;
 	assert(image_size == return_texture.data_.size());
 
+	return_texture.image_size_ = image_size;
+
 	auto image_format = compute_format(return_texture.channel_count_);
 	if (image_format.status() != Status::SUCCESS)
 		return image_format.status();
+
+	return_texture.image_format_ = image_format.value();
+
+	return_texture.image_ = Image(return_texture.device_,
+										  return_texture.width_, return_texture.height_,
+										  return_texture.image_format_,
+										  VK_IMAGE_TILING_OPTIMAL,
+										  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+										  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+										  VK_IMAGE_ASPECT_COLOR_BIT,
+										  true);
 
 	// Create staging buffer
 	VkBufferUsageFlagBits usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VkMemoryPropertyFlags memory_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	return_texture.staging_buffer_ = Buffer{return_texture.device_, image_size, usage, memory_flags, true};
-	return_texture.flush_data(return_texture.staging_buffer_, image_size, image_format.value());
+	return_texture.flush_data(return_texture.staging_buffer_, image_size, return_texture.image_format_);
 
 	// Create sampler
 	{

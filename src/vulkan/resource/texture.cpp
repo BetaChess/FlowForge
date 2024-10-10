@@ -115,7 +115,16 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 	VkMemoryPropertyFlags memory_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	Buffer staging_buffer{return_texture.device_, image_size, usage, memory_flags, true};
 
-	return_texture.	flush_data(staging_buffer, image_size, image_format.value());
+	return_texture.image_ = Image(return_texture.device_,
+									  return_texture.width_, return_texture.height_,
+									  image_format.value(),
+									  VK_IMAGE_TILING_OPTIMAL,
+									  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+									  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+									  VK_IMAGE_ASPECT_COLOR_BIT,
+									  true);
+
+	return_texture.flush_data(staging_buffer, image_size, image_format.value());
 
 	// Create sampler
 	{
@@ -171,15 +180,6 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::generate_default_textu
 void Texture::flush_data(Buffer& staging_buffer, VkDeviceSize image_size, VkFormat image_format)
 {
 	staging_buffer.load_data(data_.data(), 0, image_size, 0);
-
-	image_ = Image(device_,
-								  width_, height_,
-								  image_format,
-								  VK_IMAGE_TILING_OPTIMAL,
-								  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-								  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-								  VK_IMAGE_ASPECT_COLOR_BIT,
-								  true);
 
 	VkCommandPool pool = device_->get_graphics_command_pool();
 	VkQueue queue = device_->get_graphics_queue();
