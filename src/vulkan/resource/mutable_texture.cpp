@@ -7,15 +7,6 @@
 namespace flwfrg::vk
 {
 
-MutableTexture::~MutableTexture()
-{
-	vkDeviceWaitIdle(device_->get_logical_device());
-
-	if (sampler_.not_null())
-	{
-		vkDestroySampler(device_->get_logical_device(), sampler_, nullptr);
-	}
-}
 StatusOptional<MutableTexture, Status, Status::SUCCESS> MutableTexture::create_mutable_texture(Device *device, uint32_t id, uint32_t width, uint32_t height, uint8_t channel_count, bool has_transparency, std::vector<uint8_t> data)
 {
 	assert(device != nullptr);

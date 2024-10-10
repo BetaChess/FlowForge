@@ -10,7 +10,7 @@ class MutableTexture : public Texture
 {
 public:
 	MutableTexture() = default;
-	~MutableTexture();
+	~MutableTexture() = default;
 
 	// Copy
 	MutableTexture(const MutableTexture &) = delete;
