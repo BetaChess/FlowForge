@@ -104,94 +104,26 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::create_texture(Device 
 	return_texture.generation_ = constant::invalid_generation;
 
 	VkDeviceSize image_size = return_texture.width_ * return_texture.height_ * return_texture.channel_count_;
-
-
 	assert(image_size == return_texture.data_.size());
 
-	VkFormat image_format;
-	switch (return_texture.channel_count_)
-	{
-		case 1:
-			image_format = VK_FORMAT_R8_UNORM;
-			break;
-		case 2:
-			image_format = VK_FORMAT_R8G8_UNORM;
-			break;
-		case 3:
-			image_format = VK_FORMAT_R8G8B8_UNORM;
-			break;
-		case 4:
-			image_format = VK_FORMAT_R8G8B8A8_UNORM;
-			break;
-		default:
-			return Status::FLOWFORGE_UNSUPPORTED_CHANNEL_COUNT;
-	}
+	auto image_format = compute_format(return_texture.channel_count_);
+	if (image_format.status() != Status::SUCCESS)
+		return image_format.status();
 
 	// Create staging buffer
 	VkBufferUsageFlagBits usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	VkMemoryPropertyFlags memory_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	Buffer staging_buffer{return_texture.device_, image_size, usage, memory_flags, true};
 
-	staging_buffer.load_data(return_texture.data_.data(), 0, image_size, 0);
-
-	return_texture.image_ = Image(return_texture.device_,
-								  return_texture.width_, return_texture.height_,
-								  image_format,
-								  VK_IMAGE_TILING_OPTIMAL,
-								  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-								  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-								  VK_IMAGE_ASPECT_COLOR_BIT,
-								  true);
-
-	VkCommandPool pool = return_texture.device_->get_graphics_command_pool();
-	VkQueue queue = return_texture.device_->get_graphics_queue();
-	CommandBuffer temp_buffer = CommandBuffer::begin_single_time_commands(return_texture.device_, pool);
-
-	// Transition the layout to the optimal for receiving data
-	return_texture.image_.transition_layout(temp_buffer, image_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-	// Copy data from the buffer
-	return_texture.image_.copy_from_buffer(temp_buffer, staging_buffer);
-
-	// Transition to optimal read layout
-	return_texture.image_.transition_layout(temp_buffer, image_format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-	CommandBuffer::end_single_time_commands(return_texture.device_, temp_buffer, queue);
+	return_texture.	flush_data(staging_buffer, image_size, image_format.value());
 
 	// Create sampler
-	VkSamplerCreateInfo sampler_info{};
-	sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	sampler_info.magFilter = VK_FILTER_LINEAR;
-	sampler_info.minFilter = VK_FILTER_LINEAR;
-	sampler_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	sampler_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	sampler_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	sampler_info.anisotropyEnable = VK_TRUE;
-	sampler_info.maxAnisotropy = 16;
-	sampler_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	sampler_info.unnormalizedCoordinates = VK_FALSE;
-	sampler_info.compareEnable = VK_FALSE;
-	sampler_info.compareOp = VK_COMPARE_OP_ALWAYS;
-	sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	sampler_info.mipLodBias = 0.0f;
-	sampler_info.minLod = 0.0f;
-	sampler_info.maxLod = 0.0f;
-
-	// Create the sampler and check the result
-	auto result = vkCreateSampler(return_texture.device_->get_logical_device(), &sampler_info, nullptr, return_texture.sampler_.ptr());
-	if (result != VK_SUCCESS)
 	{
-		switch (result)
-		{
-			case VK_ERROR_OUT_OF_HOST_MEMORY:
-				return {Status::OUT_OF_HOST_MEMORY};
-			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
-				return {Status::OUT_OF_DEVICE_MEMORY};
-			case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS_KHR:
-				return {Status::INVALID_OPAQUE_CAPTURE_ADDRESS_KHR};
-			default:
-				return {Status::UNKNOWN_ERROR};
-		}
+		auto sampler = create_sampler(return_texture.device_);
+		if (sampler.status() != Status::SUCCESS)
+			return sampler.status();
+
+		return_texture.sampler_ = std::move(sampler.value());
 	}
 
 	return_texture.generation_ = 0;
@@ -234,5 +166,101 @@ StatusOptional<Texture, Status, Status::SUCCESS> Texture::generate_default_textu
 
 	return create_texture(device, 0, texture_width, texture_height, channel_count, false, texture_data);
 	// default_texture_ = std::move(VulkanTexture(context_, 0, texture_width, texture_height, false, texture_data));
+}
+
+void Texture::flush_data(Buffer& staging_buffer, VkDeviceSize image_size, VkFormat image_format)
+{
+	staging_buffer.load_data(data_.data(), 0, image_size, 0);
+
+	image_ = Image(device_,
+								  width_, height_,
+								  image_format,
+								  VK_IMAGE_TILING_OPTIMAL,
+								  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+								  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+								  VK_IMAGE_ASPECT_COLOR_BIT,
+								  true);
+
+	VkCommandPool pool = device_->get_graphics_command_pool();
+	VkQueue queue = device_->get_graphics_queue();
+	CommandBuffer temp_buffer = CommandBuffer::begin_single_time_commands(device_, pool);
+
+	// Transition the layout to the optimal for receiving data
+	image_.transition_layout(temp_buffer, image_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	// Copy data from the buffer
+	image_.copy_from_buffer(temp_buffer, staging_buffer);
+
+	// Transition to optimal read layout
+	image_.transition_layout(temp_buffer, image_format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	CommandBuffer::end_single_time_commands(device_, temp_buffer, queue);
+
+	generation_++;
+}
+
+StatusOptional<Handle<VkSampler>, Status, Status::SUCCESS> Texture::create_sampler(Device *device)
+{
+	assert(device != nullptr);
+
+	Handle<VkSampler> return_handle;
+
+	VkSamplerCreateInfo sampler_info{};
+	sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	sampler_info.magFilter = VK_FILTER_LINEAR;
+	sampler_info.minFilter = VK_FILTER_LINEAR;
+	sampler_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	sampler_info.anisotropyEnable = VK_TRUE;
+	sampler_info.maxAnisotropy = 16;
+	sampler_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	sampler_info.unnormalizedCoordinates = VK_FALSE;
+	sampler_info.compareEnable = VK_FALSE;
+	sampler_info.compareOp = VK_COMPARE_OP_ALWAYS;
+	sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	sampler_info.mipLodBias = 0.0f;
+	sampler_info.minLod = 0.0f;
+	sampler_info.maxLod = 0.0f;
+
+	// Create the sampler and check the result
+	auto result = vkCreateSampler(device->get_logical_device(), &sampler_info, nullptr, return_handle.ptr());
+	if (result != VK_SUCCESS)
+	{
+		switch (result)
+		{
+			case VK_ERROR_OUT_OF_HOST_MEMORY:
+				return {Status::OUT_OF_HOST_MEMORY};
+			case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+				return {Status::OUT_OF_DEVICE_MEMORY};
+			case VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS_KHR:
+				return {Status::INVALID_OPAQUE_CAPTURE_ADDRESS_KHR};
+			default:
+				return {Status::UNKNOWN_ERROR};
+		}
+	}
+
+	return return_handle;
+}
+
+StatusOptional<VkFormat, Status, Status::SUCCESS> Texture::compute_format(uint8_t channel_count)
+{
+	switch (channel_count)
+	{
+		case 1:
+			return VK_FORMAT_R8_UNORM;
+		break;
+		case 2:
+			return VK_FORMAT_R8G8_UNORM;
+		break;
+		case 3:
+			return VK_FORMAT_R8G8B8_UNORM;
+		break;
+		case 4:
+			return VK_FORMAT_R8G8B8A8_UNORM;
+		break;
+		default:
+			return Status::FLOWFORGE_UNSUPPORTED_CHANNEL_COUNT;
+	}
 }
 }// namespace flwfrg::vk

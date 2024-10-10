@@ -50,7 +50,7 @@ public:
 
 	static StatusOptional<Texture, Status, Status::SUCCESS> generate_default_texture(Device *device);
 
-private:
+protected:
 	Device *device_ = nullptr;
 
 	uint32_t id_ = constant::invalid_id;
@@ -63,6 +63,11 @@ private:
 
 	Image image_{};
 	Handle<VkSampler> sampler_{};
+
+	void flush_data(Buffer& staging_buffer, VkDeviceSize image_size, VkFormat image_format);
+
+	static StatusOptional<Handle<VkSampler>, Status, Status::SUCCESS> create_sampler(Device* device);
+	static StatusOptional<VkFormat, Status, Status::SUCCESS> compute_format(uint8_t channel_count);
 };
 
 }// namespace flwfrg::vk

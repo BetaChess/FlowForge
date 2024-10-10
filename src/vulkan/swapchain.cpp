@@ -126,7 +126,7 @@ void Swapchain::recreate_swapchain()
 	}
 
 	// Choose present mode
-	VkPresentModeKHR present_mode = VK_PRESENT_MODE_FIFO_KHR;// fifo support is guarenteed by the Vulkan standard.
+	VkPresentModeKHR present_mode = VK_PRESENT_MODE_FIFO_KHR;// fifo support is guaranteed by the Vulkan standard.
 	for (auto supported_mode: context_->device_.get_swapchain_support_details().present_modes)
 	{
 		if (supported_mode == VK_PRESENT_MODE_MAILBOX_KHR)

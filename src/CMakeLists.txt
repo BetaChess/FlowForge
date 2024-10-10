@@ -76,6 +76,8 @@ set(SOURCES
         math/transform.cpp
         input/keyboard_controller.hpp
         input/keyboard_controller.cpp
+        vulkan/resource/mutable_texture.hpp
+        vulkan/resource/mutable_texture.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})

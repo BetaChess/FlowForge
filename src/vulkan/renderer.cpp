@@ -2,6 +2,7 @@
 
 #include "renderer.hpp"
 
+#include <iostream>
 #include <utility>
 
 namespace flwfrg::vk
