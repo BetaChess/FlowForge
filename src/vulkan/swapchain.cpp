@@ -151,12 +151,11 @@ void Swapchain::recreate_swapchain()
 			context_->device_.get_swapchain_support_details().capabilities.maxImageExtent.height);
 
 	// Get image count
-	uint32_t image_count = context_->device_.get_swapchain_support_details().capabilities.minImageCount + 1;
-	if (context_->device_.get_swapchain_support_details().capabilities.maxImageCount > 0 &&
-		image_count > context_->device_.get_swapchain_support_details().capabilities.maxImageCount)
-	{
-		image_count = context_->device_.get_swapchain_support_details().capabilities.maxImageCount;
-	}
+	uint32_t image_count = std::clamp(
+		3u,
+		context_->device_.get_swapchain_support_details().capabilities.minImageCount,
+		context_->device_.get_swapchain_support_details().capabilities.maxImageCount);
+	assert(image_count < 4u);
 
 	// Swapchain create info
 	VkSwapchainCreateInfoKHR create_info{};
