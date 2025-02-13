@@ -26,7 +26,7 @@ StatusOptional<MutableTexture, Status, Status::SUCCESS> MutableTexture::create_m
 	return_texture.generation_ = constant::invalid_generation;
 
 	VkDeviceSize image_size = return_texture.width_ * return_texture.height_ * return_texture.channel_count_;
-	assert(image_size == return_texture.data_.size());
+	assert(image_size == data.size());
 
 	return_texture.image_size_ = image_size;
 

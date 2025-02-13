@@ -114,7 +114,7 @@ int main()
 
 		std::ranges::fill(new_data, std::sin(value) * 255);
 		value += 0.001f;
-		mutable_texture.update_texture(display_context.get_frame_counter(), new_data, 0);
+		mutable_texture.update_texture(display_context.get_frame_counter(), new_data);
 	}
 
 	material_shader.release_resources(object_id);

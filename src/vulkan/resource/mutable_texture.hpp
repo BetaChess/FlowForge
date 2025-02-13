@@ -41,12 +41,8 @@ public:
 			uint32_t height,
 			uint8_t channel_count);
 
-	void update_texture(uint64_t frame, const std::span<uint8_t> data, uint32_t offset)
+	void update_texture(uint64_t frame, const std::span<uint8_t> data)
 	{
-		// Note that this is actually a template
-		// TODO: Might want this to be an actual check? Not just debug
-		assert(data_range.size() + offset <= data_.size() && "Trying to update texture outside of data boundary");
-
 		size_t image_index = frame % 3;
 
 		updateFences_[image_index].wait(std::numeric_limits<uint64_t>::max());
