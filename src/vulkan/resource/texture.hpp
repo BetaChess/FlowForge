@@ -18,7 +18,7 @@ class Texture
 {
 public:
 	Texture() = default;
-	~Texture();
+	virtual ~Texture();
 
 	// Copy
 	Texture(const Texture &) = delete;
@@ -34,21 +34,8 @@ public:
 	[[nodiscard]] inline bool has_transparency() const { return has_transparency_; }
 	[[nodiscard]] inline uint32_t get_generation() const { return generation_; }
 
-	[[nodiscard]] inline const Image &get_image() const { return image_; }
+	[[nodiscard]] virtual const Image &get_image(uint64_t frame) const = 0;
 	[[nodiscard]] VkSampler get_sampler() const { return sampler_; }
-
-	Status load_texture_from_file(std::string texture_name);
-
-	static StatusOptional<Texture, Status, Status::SUCCESS> create_texture(
-			Device *device,
-			uint32_t id,
-			uint32_t width,
-			uint32_t height,
-			uint8_t channel_count,
-			bool has_transparency,
-			std::vector<uint8_t> data);
-
-	static StatusOptional<Texture, Status, Status::SUCCESS> generate_default_texture(Device *device);
 
 protected:
 	Device *device_ = nullptr;
@@ -59,12 +46,8 @@ protected:
 	uint8_t channel_count_ = 0;
 	bool has_transparency_ = false;
 	uint32_t generation_ = constant::invalid_generation;
-	std::vector<uint8_t> data_{};
 
-	Image image_{};
 	Handle<VkSampler> sampler_{};
-
-	void flush_data(Buffer& staging_buffer, VkDeviceSize image_size, VkFormat image_format);
 
 	static StatusOptional<Handle<VkSampler>, Status, Status::SUCCESS> create_sampler(Device* device);
 	static StatusOptional<VkFormat, Status, Status::SUCCESS> compute_format(uint8_t channel_count);

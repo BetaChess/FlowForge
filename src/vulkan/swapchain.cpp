@@ -106,6 +106,7 @@ Status Swapchain::present(VkQueue graphics_queue, VkQueue present_queue, VkSemap
 	}
 
 	context_->current_frame_ = (context_->current_frame_ + 1) % max_frames_in_flight_;
+	context_->frame_counter++;
 
 	return Status::SUCCESS;
 }

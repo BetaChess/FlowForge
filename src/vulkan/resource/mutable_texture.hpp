@@ -2,6 +2,8 @@
 
 #include "texture.hpp"
 #include "vulkan/buffer.hpp"
+#include "vulkan/command_buffer.hpp"
+#include "vulkan/fence.hpp"
 
 #include <ranges>
 
@@ -12,8 +14,7 @@ namespace flwfrg::vk
 class MutableTexture : public Texture
 {
 public:
-	MutableTexture() = default;
-	~MutableTexture() = default;
+	~MutableTexture() override = default;
 
 	// Copy
 	MutableTexture(const MutableTexture &) = delete;
@@ -22,39 +23,51 @@ public:
 	MutableTexture(MutableTexture &&other) noexcept = default;
 	MutableTexture &operator=(MutableTexture &&other) noexcept = default;
 
-	void update_texture(const std::ranges::forward_range auto& data_range, uint32_t offset)
+	[[nodiscard]] const Image &get_image(uint64_t frame) const override;
+
+	static StatusOptional<MutableTexture, Status, Status::SUCCESS> create_mutable_texture(
+			Device *device,
+			uint32_t id,
+			uint32_t width,
+			uint32_t height,
+			uint8_t channel_count,
+			bool has_transparency,
+			std::vector<uint8_t> data);
+
+	static StatusOptional<MutableTexture, Status, Status::SUCCESS> create_mutable_texture(
+			Device *device,
+			uint32_t id,
+			uint32_t width,
+			uint32_t height,
+			uint8_t channel_count);
+
+	void update_texture(uint64_t frame, const std::span<uint8_t> data, uint32_t offset)
 	{
+		// Note that this is actually a template
 		// TODO: Might want this to be an actual check? Not just debug
 		assert(data_range.size() + offset <= data_.size() && "Trying to update texture outside of data boundary");
 
-		for (size_t i = 0; i < data_range.size(); i++)
-			data_[i + offset] = data_range[i];
+		size_t image_index = frame % 3;
 
-		flush_data(staging_buffer_, data_.size(), image_format_);
-	};
+		updateFences_[image_index].wait(std::numeric_limits<uint64_t>::max());
+		updateFences_[image_index].reset();
 
+		flush_data(image_index, staging_buffers_[image_index], data, data.size(), image_format_);
+	}
 
-	static StatusOptional<MutableTexture, Status, Status::SUCCESS> create_mutable_texture(
-				Device *device,
-				uint32_t id,
-				uint32_t width,
-				uint32_t height,
-				uint8_t channel_count,
-				bool has_transparency,
-				std::vector<uint8_t> data);
+protected:
+	std::array<CommandBuffer, 3> command_buffers_;
 
-	static StatusOptional<MutableTexture, Status, Status::SUCCESS> create_mutable_texture(
-				Device *device,
-				uint32_t id,
-				uint32_t width,
-				uint32_t height,
-				uint8_t channel_count);
-
-private:
-	Buffer staging_buffer_;
+	std::array<Fence, 3> updateFences_;
+	std::array<Buffer, 3> staging_buffers_;
+	std::array<Image, 3> images_;
 
 	VkDeviceSize image_size_{};
 	VkFormat image_format_{};
+
+	explicit MutableTexture(Device* device);
+
+	void flush_data(size_t image_index, Buffer &staging_buffer, const std::span<uint8_t> data, VkDeviceSize image_size, VkFormat image_format);
 };
 
-}
+}// namespace flwfrg::vk

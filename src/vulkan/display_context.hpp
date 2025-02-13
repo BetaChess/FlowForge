@@ -36,6 +36,7 @@ public:
 	[[nodiscard]] inline Device &get_device() { return device_; }
 	[[nodiscard]] inline Swapchain &get_swapchain() { return swapchain_; }
 	[[nodiscard]] inline RenderPass &get_main_render_pass() { return main_render_pass_; }
+	[[nodiscard]] inline uint32_t get_frame_counter() const { return frame_counter; }
 	[[nodiscard]] inline uint32_t get_image_index() const { return image_index_; }
 	[[nodiscard]] inline uint32_t get_current_frame() const { return current_frame_; }
 
@@ -70,6 +71,7 @@ private:
 	std::vector<Fence> in_flight_fences_;
 	std::vector<Fence *> images_in_flight_;
 
+	uint64_t frame_counter = 0;
 	// Current swapchain image index (next index may be unpredictable)
 	uint32_t image_index_ = 0;
 	// Current frame (will always change in a round-robin fashion).

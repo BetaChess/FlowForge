@@ -33,6 +33,7 @@ public:
 
 	// Methods
 
+	[[nodiscard]] inline uint64_t get_frame() const { return display_context_.get_current_frame(); };
 	[[nodiscard]] inline bool should_close() const { return window_.should_close(); };
 	[[nodiscard]] inline DisplayContext &get_display_context() { return display_context_; };
 	[[nodiscard]] inline Window &get_window() { return window_; };

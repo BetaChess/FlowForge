@@ -3,6 +3,7 @@
 #include "material_shader.hpp"
 
 #include "vulkan/display_context.hpp"
+#include "vulkan/resource/static_texture.hpp"
 #include "vulkan/resource/texture.hpp"
 #include "vulkan/shader/vertex.hpp"
 #include "vulkan/util/constants.hpp"
@@ -374,7 +375,7 @@ MaterialShader::MaterialShader(DisplayContext *context)
 
 
 	// Generate default texture
-	auto opt_result = Texture::generate_default_texture(&context_->get_device());
+	auto opt_result = StaticTexture::generate_default_texture(&context_->get_device());
 	if (!opt_result.has_value())
 		throw std::runtime_error("Failed to generate default texture");
 	default_texture_ = std::move(opt_result.value());
@@ -444,6 +445,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 
 	// Todo: check if it actually needs to update
 	std::array<VkWriteDescriptorSet, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> descriptor_writes{};
+	std::array<VkDescriptorBufferInfo, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> buffer_infos{};
 	uint32_t descriptor_count = 0;
 	uint32_t descriptor_index = 0;
 
@@ -459,10 +461,10 @@ void MaterialShader::update_object(GeometryRenderData data)
 	// Only update if the descriptor hasn't already been updated
 	if (object_state->descriptor_states[descriptor_index].generations[image_index] == constant::invalid_id)
 	{
-		VkDescriptorBufferInfo buffer_info{};
-		buffer_info.buffer = local_uniform_buffer_.get_handle();
-		buffer_info.offset = offset;
-		buffer_info.range = range;
+		buffer_infos[descriptor_count] = {};
+		buffer_infos[descriptor_count].buffer = local_uniform_buffer_.get_handle();
+		buffer_infos[descriptor_count].offset = offset;
+		buffer_infos[descriptor_count].range = range;
 
 		descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptor_writes[descriptor_count].dstSet = object_descriptor_set;
@@ -470,7 +472,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 		descriptor_writes[descriptor_count].dstArrayElement = 0;
 		descriptor_writes[descriptor_count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptor_writes[descriptor_count].descriptorCount = 1;
-		descriptor_writes[descriptor_count].pBufferInfo = &buffer_info;
+		descriptor_writes[descriptor_count].pBufferInfo = &buffer_infos[descriptor_count];
 
 		descriptor_count++;
 		object_state->descriptor_states[descriptor_index].generations[image_index] = 1;
@@ -494,7 +496,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 		if (texture && (descriptor_generation != texture->get_generation() || descriptor_generation == constant::invalid_generation))
 		{
 			image_infos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			image_infos[0].imageView = texture->get_image().get_image_view();
+			image_infos[0].imageView = texture->get_image(context_->get_frame_counter()).get_image_view();
 			image_infos[0].sampler = texture->get_sampler();
 
 			descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

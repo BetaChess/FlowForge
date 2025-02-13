@@ -78,6 +78,8 @@ set(SOURCES
         input/keyboard_controller.cpp
         vulkan/resource/mutable_texture.hpp
         vulkan/resource/mutable_texture.cpp
+        vulkan/resource/static_texture.hpp
+        vulkan/resource/static_texture.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})

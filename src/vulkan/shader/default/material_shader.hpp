@@ -1,11 +1,12 @@
 #pragma once
 
+#include "material_object_types.inl"
 #include "vulkan/buffer.hpp"
 #include "vulkan/descriptor.hpp"
+#include "vulkan/resource/static_texture.hpp"
 #include "vulkan/resource/texture.hpp"
 #include "vulkan/shader/pipeline.hpp"
 #include "vulkan/shader/shader_stage.hpp"
-#include "material_object_types.inl"
 
 namespace flwfrg::vk
 {
@@ -86,7 +87,7 @@ private:
 
 	Pipeline pipeline_{};
 
-	Texture default_texture_;
+	StaticTexture default_texture_;
 
 	// Static members
 

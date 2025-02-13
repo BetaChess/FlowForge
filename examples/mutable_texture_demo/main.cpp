@@ -83,7 +83,7 @@ int main()
 
 	flwfrg::Transform object_transform;
 
-	std::vector<int8_t> new_data{};
+	std::vector<uint8_t> new_data{};
 	new_data.resize(500*500*4);
 
 	float value = 0;
@@ -113,8 +113,8 @@ int main()
 		renderer.end_frame();
 
 		std::ranges::fill(new_data, std::sin(value) * 255);
-		value += 0.01f;
-		mutable_texture.update_texture(new_data, 0);
+		value += 0.001f;
+		mutable_texture.update_texture(display_context.get_frame_counter(), new_data, 0);
 	}
 
 	material_shader.release_resources(object_id);
