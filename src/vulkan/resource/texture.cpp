@@ -19,6 +19,8 @@ Texture::~Texture()
 	{
 		vkDestroySampler(device_->get_logical_device(), sampler_, nullptr);
 	}
+
+    FLOWFORGE_TRACE("Texture destroyed");
 }
 
 StatusOptional<Handle<VkSampler>, Status, Status::SUCCESS> Texture::create_sampler(Device *device)

@@ -49,6 +49,11 @@ Image::Image(
 		throw std::runtime_error("Failed to create image!");
 	}
 
+
+    // TODO: Throw an error if the format is unsupported
+    VkFormatProperties format_properties;
+    vkGetPhysicalDeviceFormatProperties(device_->get_physical_device(), format, &format_properties);
+
 	// Query memory requirements
 	VkMemoryRequirements memory_requirements;
 	vkGetImageMemoryRequirements(

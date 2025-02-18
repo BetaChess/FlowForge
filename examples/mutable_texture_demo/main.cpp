@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+#define CHANNEL_COUNT 4
 int main()
 {
 	flwfrg::init();
@@ -69,7 +70,7 @@ int main()
 	flwfrg::vk::shader::GeometryRenderData object_data{};
 	flwfrg::vk::MutableTexture mutable_texture = std::move(flwfrg::vk::MutableTexture::create_mutable_texture(
 							  &display_context.get_device(),
-							  0, 500, 500, 4)
+							  0, 500, 500, CHANNEL_COUNT)
 							  .value());;
 
 
@@ -84,7 +85,7 @@ int main()
 	flwfrg::Transform object_transform;
 
 	std::vector<uint8_t> new_data{};
-	new_data.resize(500*500*4);
+	new_data.resize(500*500*CHANNEL_COUNT);
 
 	float value = 0;
 	while (!renderer.should_close())
