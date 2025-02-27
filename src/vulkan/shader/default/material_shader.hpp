@@ -56,6 +56,8 @@ public:
 	void update_global_state(glm::mat4 projection, glm::mat4 view);
 	void update_object(GeometryRenderData data);
 
+    [[nodiscoard]] VkDescriptorSet get_object_descriptor_set(uint32_t object_id, uint32_t image_index) const { return object_states_[object_id].descriptor_sets[image_index]; }
+
 	void use();
 
 	[[nodiscard]] uint32_t acquire_resources();
