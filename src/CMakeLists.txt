@@ -76,8 +76,6 @@ set(SOURCES
         math/transform.cpp
         input/keyboard_controller.hpp
         input/keyboard_controller.cpp
-        vulkan/resource/mutable_texture.hpp
-        vulkan/resource/mutable_texture.cpp
         vulkan/resource/static_texture.hpp
         vulkan/resource/static_texture.cpp
         vulkan/resource/im_gui_texture.hpp

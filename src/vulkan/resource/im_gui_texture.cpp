@@ -40,6 +40,12 @@ VkDescriptorSet ImGuiTexture::get_descriptor_set() const { return descriptor_set
 
 void ImGuiTexture::update_texture(std::span<uint8_t> data)
 {
+    if (next_texture_index_ != current_texture_index_)
+    {
+        updateFences_[next_texture_index_].wait(std::numeric_limits<uint64_t>::max());
+        current_texture_index_ = next_texture_index_;
+    }
+
     next_texture_index_ = (current_texture_index_ + 1) % images_.size();
 
     updateFences_[next_texture_index_].wait(std::numeric_limits<uint64_t>::max());
