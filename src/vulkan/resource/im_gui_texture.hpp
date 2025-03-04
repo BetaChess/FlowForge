@@ -26,6 +26,8 @@ public:
 
     void update_texture(std::span<uint8_t> data);
 
+    Status resize(uint32_t width, uint32_t height);
+
     static StatusOptional<ImGuiTexture, Status, Status::SUCCESS>
     create_imgui_texture(Device *device, uint32_t width, uint32_t height, uint8_t channel_count, bool has_transparency,
                          std::vector<uint8_t> data);
@@ -46,6 +48,10 @@ private:
 
     VkDeviceSize image_size_{};
     VkFormat image_format_{};
+
+    void free_descriptors();
+
+    Status resize(uint32_t width, uint32_t height, uint8_t channel_count, std::span<uint8_t> data);
 
     void flush_data(std::span<uint8_t> data, size_t image_index);
 };

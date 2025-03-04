@@ -59,11 +59,13 @@ Buffer::~Buffer()
 	if (handle_.not_null())
 	{
 		vkDestroyBuffer(device_->get_logical_device(), handle_, nullptr);
+	    handle_ = {};
 		FLOWFORGE_TRACE("Vulkan Buffer destroyed");
 	}
 	if (memory_.not_null())
 	{
 		vkFreeMemory(device_->get_logical_device(), memory_, nullptr);
+	    memory_ = {};
 	}
 }
 

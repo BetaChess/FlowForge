@@ -37,7 +37,7 @@ class IMGuiShader
 {
 public:
 	IMGuiShader() = default;
-	IMGuiShader(DisplayContext* context);
+	IMGuiShader(DisplayContext* context, uint32_t texture_limit = 2);
 	~IMGuiShader();
 
 	// Copy

@@ -47,7 +47,7 @@ IMGuiInstance &IMGuiInstance::operator=(IMGuiInstance &&other) noexcept
 	return *this;
 }
 
-IMGuiShader::IMGuiShader(DisplayContext *context)
+IMGuiShader::IMGuiShader(DisplayContext *context, uint32_t texture_limit)
 	: display_context_{context}
 {
 	assert(display_context_ != nullptr);
@@ -59,7 +59,7 @@ IMGuiShader::IMGuiShader(DisplayContext *context)
 	// Image sampler pool
 	VkDescriptorPoolSize image_sampler_pool_size{};
 	image_sampler_pool_size.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	image_sampler_pool_size.descriptorCount = 3;
+	image_sampler_pool_size.descriptorCount = texture_limit;
 
 	std::vector<VkDescriptorPoolSize> pool_sizes = {
 			// global_pool_size,
