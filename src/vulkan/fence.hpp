@@ -12,6 +12,7 @@ class Device;
 class Fence
 {
 public:
+    Fence() = default;
 	explicit Fence(Device* device, bool signaled = true);
 	~Fence();
 
@@ -28,10 +29,10 @@ public:
 	void reset();
 
 private:
-	Device* device_;
+	Device* device_ = nullptr;
 
 	Handle<VkFence> handle_{};
-	bool signaled_ = true;
+	bool signaled_ = false;
 };
 
 }

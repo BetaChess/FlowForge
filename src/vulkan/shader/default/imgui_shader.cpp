@@ -59,7 +59,7 @@ IMGuiShader::IMGuiShader(DisplayContext *context)
 	// Image sampler pool
 	VkDescriptorPoolSize image_sampler_pool_size{};
 	image_sampler_pool_size.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	image_sampler_pool_size.descriptorCount = 1;
+	image_sampler_pool_size.descriptorCount = 3;
 
 	std::vector<VkDescriptorPoolSize> pool_sizes = {
 			// global_pool_size,

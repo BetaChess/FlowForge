@@ -11,7 +11,7 @@
 
 namespace flwfrg::vk
 {
-const Image &StaticTexture::get_image(uint64_t frame) const
+const Image &StaticTexture::get_image() const
 {
 	return image_;
 }

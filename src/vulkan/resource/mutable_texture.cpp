@@ -7,11 +7,8 @@
 namespace flwfrg::vk
 {
 
-const Image &MutableTexture::get_image(uint64_t frame) const
-{
-	return images_[(frame + 2) % 3];
-}
 
+const Image &MutableTexture::get_image() const {return images_[0]; }
 StatusOptional<MutableTexture, Status, Status::SUCCESS> MutableTexture::create_mutable_texture(Device *device, uint32_t id, uint32_t width, uint32_t height, uint8_t channel_count, bool has_transparency, std::vector<uint8_t> data)
 {
 	assert(device != nullptr);

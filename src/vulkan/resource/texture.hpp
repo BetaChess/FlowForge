@@ -34,7 +34,7 @@ public:
 	[[nodiscard]] inline bool has_transparency() const { return has_transparency_; }
 	[[nodiscard]] inline uint32_t get_generation() const { return generation_; }
 
-	[[nodiscard]] virtual const Image &get_image(uint64_t frame) const = 0;
+	[[nodiscard]] virtual const Image &get_image() const = 0;
 	[[nodiscard]] VkSampler get_sampler() const { return sampler_; }
 
 protected:

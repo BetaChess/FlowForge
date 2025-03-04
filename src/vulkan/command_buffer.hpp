@@ -20,6 +20,7 @@ public:
 	};
 
 public:
+    CommandBuffer() = default;
 	CommandBuffer(Device *device, VkCommandPool pool, bool is_primary);
 	~CommandBuffer();
 

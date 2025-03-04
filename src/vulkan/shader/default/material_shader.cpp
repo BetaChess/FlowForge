@@ -496,7 +496,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 		if (texture && (descriptor_generation != texture->get_generation() || descriptor_generation == constant::invalid_generation))
 		{
 			image_infos[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			image_infos[0].imageView = texture->get_image(context_->get_frame_counter()).get_image_view();
+			image_infos[0].imageView = texture->get_image().get_image_view();
 			image_infos[0].sampler = texture->get_sampler();
 
 			descriptor_writes[descriptor_count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

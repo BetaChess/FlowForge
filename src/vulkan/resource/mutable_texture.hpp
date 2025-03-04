@@ -23,7 +23,7 @@ public:
 	MutableTexture(MutableTexture &&other) noexcept = default;
 	MutableTexture &operator=(MutableTexture &&other) noexcept = default;
 
-	[[nodiscard]] const Image &get_image(uint64_t frame) const override;
+	[[nodiscard]] const Image &get_image() const override;
 
 	static StatusOptional<MutableTexture, Status, Status::SUCCESS> create_mutable_texture(
 			Device *device,

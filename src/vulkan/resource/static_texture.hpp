@@ -8,7 +8,7 @@ namespace flwfrg::vk
 class StaticTexture : public Texture
 {
 public:
-	[[nodiscard]] const Image &get_image(uint64_t frame) const override;
+	[[nodiscard]] const Image &get_image() const override;
 
 	Status load_texture_from_file(std::string texture_name);
 
