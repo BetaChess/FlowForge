@@ -14,8 +14,12 @@ namespace flwfrg::vk
 ImGuiTexture::ImGuiTexture() = default;
 ImGuiTexture::~ImGuiTexture()
 {
-    for (VkDescriptorSet descriptor : descriptor_sets_)
-        ImGui_ImplVulkan_RemoveTexture(descriptor);
+    if (descriptor_sets_[0] != VK_NULL_HANDLE)
+    {
+        vkDeviceWaitIdle(device_->get_logical_device());
+        for (VkDescriptorSet descriptor : descriptor_sets_)
+            ImGui_ImplVulkan_RemoveTexture(descriptor);
+    }
 }
 
 void ImGuiTexture::update_state()
