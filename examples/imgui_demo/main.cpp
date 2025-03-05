@@ -22,7 +22,7 @@ int main()
 {
     flwfrg::init();
     flwfrg::vk::Renderer renderer{1000, 600, "ImGUI Demo"};
-    flwfrg::vk::shader::IMGuiShader im_gui_shader(&renderer.get_display_context(), 3);
+    flwfrg::vk::shader::IMGuiShader im_gui_shader(&renderer.get_display_context(), {.texture_limit = 3, .enable_docking = true});
 
     flwfrg::vk::ImGuiTexture texture;
     std::vector<uint8_t> new_data{};

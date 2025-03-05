@@ -36,8 +36,16 @@ private:
 class IMGuiShader
 {
 public:
+    struct Config
+    {
+        uint32_t texture_limit = 2;
+        bool enable_docking = false;
+    };
+
+public:
 	IMGuiShader() = default;
-	IMGuiShader(DisplayContext* context, uint32_t texture_limit = 2);
+    IMGuiShader(DisplayContext* context);
+	IMGuiShader(DisplayContext* context, Config config);
 	~IMGuiShader();
 
 	// Copy
