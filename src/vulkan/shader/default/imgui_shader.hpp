@@ -2,8 +2,9 @@
 
 #include "vulkan/descriptor.hpp"
 
-#include <imgui_impl_glfw.h>
+
 #include <imgui_impl_vulkan.h>
+#include <imgui_internal.h>
 
 namespace flwfrg::vk
 {
@@ -29,8 +30,10 @@ public:
 	IMGuiInstance(IMGuiInstance &&other) noexcept;
 	IMGuiInstance &operator=(IMGuiInstance &&other) noexcept;
 
+    ImGuiContext *get_context() const;
+
 private:
-	bool context_created_ = false;
+    ImGuiContext *context_ = nullptr;
 };
 
 class IMGuiShader
@@ -54,6 +57,8 @@ public:
 	// Move
 	IMGuiShader(IMGuiShader &&other) noexcept = default;
 	IMGuiShader &operator=(IMGuiShader &&other) noexcept = default;
+
+    ImGuiContext* get_context() const;
 
 	void begin_frame();
 	void end_frame(CommandBuffer& command_buffer);

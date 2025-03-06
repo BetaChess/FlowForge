@@ -11,9 +11,9 @@ namespace flwfrg::vk::shader
 {
 
 
-IMGuiInstance::IMGuiInstance(ImGui_ImplVulkan_InitInfo init_info, Window *window) : context_created_{true}
+IMGuiInstance::IMGuiInstance(ImGui_ImplVulkan_InitInfo init_info, Window *window)
 {
-    ImGui::CreateContext();
+    context_ = ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
     // Init glfw for imgui
@@ -23,29 +23,32 @@ IMGuiInstance::IMGuiInstance(ImGui_ImplVulkan_InitInfo init_info, Window *window
 }
 IMGuiInstance::~IMGuiInstance()
 {
-    if (context_created_)
+    if (context_)
     {
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
 }
-IMGuiInstance::IMGuiInstance(IMGuiInstance &&other) noexcept : context_created_(other.context_created_)
-{
-    other.context_created_ = false;
-}
+IMGuiInstance::IMGuiInstance(IMGuiInstance &&other) noexcept : context_(other.context_) { other.context_ = nullptr; }
+
 
 IMGuiInstance &IMGuiInstance::operator=(IMGuiInstance &&other) noexcept
 {
     if (this != &other)
     {
-        context_created_ = other.context_created_;
-        other.context_created_ = false;
+        context_ = other.context_;
+        other.context_ = nullptr;
     }
     return *this;
 }
 
-IMGuiShader::IMGuiShader(DisplayContext *context) : IMGuiShader(context, Config()){}
+ImGuiContext *IMGuiInstance::get_context() const
+{
+    return context_;
+}
+
+IMGuiShader::IMGuiShader(DisplayContext *context) : IMGuiShader(context, Config()) {}
 IMGuiShader::IMGuiShader(DisplayContext *context, Config config) : display_context_{context}
 {
     assert(display_context_ != nullptr);
@@ -93,6 +96,11 @@ IMGuiShader::IMGuiShader(DisplayContext *context, Config config) : display_conte
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }
 IMGuiShader::~IMGuiShader() { vkDeviceWaitIdle(display_context_->get_device().get_logical_device()); }
+
+ImGuiContext *IMGuiShader::get_context() const
+{
+    return im_gui_instance_.get_context();
+}
 
 void IMGuiShader::begin_frame()
 {
