@@ -105,17 +105,14 @@ Status ImGuiTexture::resize(uint32_t width, uint32_t height, uint8_t channel_cou
 {
     VkDeviceSize image_size = width * height * channel_count;
     assert(image_size == data.size());
+    assert(channel_count == 4); // Only one supported for now
 
     width_ = width;
     height_ = height;
     channel_count_ = channel_count;
     image_size_ = image_size;
 
-    auto image_format = compute_format(channel_count_);
-    if (image_format.status() != Status::SUCCESS)
-        return image_format.status();
-
-    image_format_ = image_format.value();
+    image_format_ = VK_FORMAT_R8G8B8A8_SRGB;
 
     free_descriptors();
 

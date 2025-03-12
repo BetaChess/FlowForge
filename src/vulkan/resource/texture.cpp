@@ -71,16 +71,12 @@ StatusOptional<VkFormat, Status, Status::SUCCESS> Texture::compute_format(uint8_
     {
     case 1:
         return VK_FORMAT_R8_UNORM;
-        break;
     case 2:
         return VK_FORMAT_R8G8_UNORM;
-        break;
     case 3:
         return VK_FORMAT_R8G8B8_UNORM;
-        break;
     case 4:
         return VK_FORMAT_R8G8B8A8_UNORM;
-        break;
     default:
         return Status::FLOWFORGE_UNSUPPORTED_CHANNEL_COUNT;
     }
