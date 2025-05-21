@@ -5,6 +5,8 @@
 #include "vulkan/buffer.hpp"
 #include "vulkan/fence.hpp"
 
+#include <span>
+
 namespace flwfrg::vk
 {
 class ImGuiTexture : public Texture

@@ -164,7 +164,8 @@ void Device::create_logical_device()
 		unique_indices.emplace(compute_queue_index_.value());
 	uint32_t index_count = unique_indices.size();
 
-	uint32_t indices[index_count];
+	std::vector<uint32_t> indices;
+    indices.resize(index_count);
 	size_t index = 0;
 	if (graphics_queue_index_.has_value())
 	{
@@ -196,7 +197,8 @@ void Device::create_logical_device()
 		}
 	}
 
-	VkDeviceQueueCreateInfo queue_create_infos[index_count];
+	std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
+    queue_create_infos.resize(index_count);
 	for (size_t i = 0; i < index_count; ++i)
 	{
 		queue_create_infos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -217,7 +219,7 @@ void Device::create_logical_device()
 
 	VkDeviceCreateInfo device_create_info = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
 	device_create_info.queueCreateInfoCount = index_count;
-	device_create_info.pQueueCreateInfos = queue_create_infos;
+	device_create_info.pQueueCreateInfos = queue_create_infos.data();
 	device_create_info.pEnabledFeatures = &device_features;
 	device_create_info.enabledExtensionCount = surface_ == nullptr ? 0 : 1;
 	const char *extension_names = nullptr;

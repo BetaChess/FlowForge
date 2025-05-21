@@ -40,7 +40,7 @@ public:
 	[[nodiscard]] inline uint32_t get_image_index() const { return image_index_; }
 	[[nodiscard]] inline uint32_t get_current_frame() const { return current_frame_; }
 
-	inline CommandBuffer &get_command_buffer() { return graphics_command_buffers_[image_index_]; };
+	inline CommandBuffer &get_command_buffer() { return graphics_command_buffers_[current_frame_]; };
 	inline Fence &get_current_frame_fence_in_flight() { return in_flight_fences_[current_frame_]; };
 	inline Fence *get_image_index_frame_fence_in_flight() { return images_in_flight_[image_index_]; };
 	inline VkFramebuffer get_frame_buffer_handle() { return swapchain_.frame_buffers_[image_index_].handle(); };

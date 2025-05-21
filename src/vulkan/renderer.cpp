@@ -26,7 +26,6 @@ StatusOptional<CommandBuffer *, Renderer::RendererStatus, Renderer::RendererStat
 		FLOWFORGE_WARN("Failure to wait for fence in flight");
 		return RendererStatus::FAILED_TO_WAIT_ON_FENCE;
 	}
-
 	// Get the next image index
 	auto result = display_context_.swapchain_.acquire_next_image(
 			std::numeric_limits<uint64_t>::max(),
@@ -44,7 +43,8 @@ StatusOptional<CommandBuffer *, Renderer::RendererStatus, Renderer::RendererStat
 		}
 	}
 
-	CommandBuffer &command_buffer = display_context_.graphics_command_buffers_[display_context_.image_index_];
+	CommandBuffer &command_buffer = display_context_.graphics_command_buffers_[display_context_.current_frame_];
+
 	command_buffer.reset();
 	command_buffer.begin(false, false, false);
 
@@ -74,7 +74,7 @@ StatusOptional<CommandBuffer *, Renderer::RendererStatus, Renderer::RendererStat
 
 Renderer::RendererStatus Renderer::end_frame()
 {
-	CommandBuffer &command_buffer = display_context_.graphics_command_buffers_[display_context_.image_index_];
+	CommandBuffer &command_buffer = display_context_.graphics_command_buffers_[display_context_.current_frame_];
 
 	display_context_.main_render_pass_.end(command_buffer);
 
@@ -112,9 +112,10 @@ Renderer::RendererStatus Renderer::end_frame()
 			display_context_.device_.get_present_queue(),
 			display_context_.queue_complete_semaphores_[display_context_.current_frame_],
 			display_context_.image_index_);
+
 	if (result != Status::SUCCESS)
 	{
-		if (result == Status::OUT_OF_DATE_KHR || VK_SUBOPTIMAL_KHR)
+		if (result == Status::OUT_OF_DATE_KHR || result == Status::SUBOPTIMAL_KHR)
 		{
 			return RendererStatus::SWAPCHAIN_RESIZE;
 		} else

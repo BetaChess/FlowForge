@@ -384,8 +384,9 @@ MaterialShader::MaterialShader(DisplayContext *context)
 void MaterialShader::update_global_state(glm::mat4 projection, glm::mat4 view)
 {
 	CommandBuffer &command_buffer = context_->get_command_buffer();
-	auto image_index = context_->get_image_index();
-	VkDescriptorSet global_descriptor = global_descriptor_sets_[image_index];
+    auto current_frame = context_->get_current_frame();
+	//auto image_index = context_->get_image_index();
+    VkDescriptorSet global_descriptor = global_descriptor_sets_[current_frame];
 
 	use();
 
@@ -394,7 +395,7 @@ void MaterialShader::update_global_state(glm::mat4 projection, glm::mat4 view)
 
 	// Configure the descriptors for the given index
 	uint32_t range = sizeof(GlobalUniformObject);
-	uint64_t offset = sizeof(GlobalUniformObject) * image_index;
+    uint64_t offset = sizeof(GlobalUniformObject) * current_frame;
 
 	// Copy data to buffer
 	global_uniform_buffer_.load_data(&global_ubo, offset, range, 0);
@@ -419,7 +420,7 @@ void MaterialShader::update_global_state(glm::mat4 projection, glm::mat4 view)
 	vkUpdateDescriptorSets(context_->get_device().get_logical_device(),
 						   1, &ubo_descriptor_write,
 						   0, nullptr);
-	global_descriptor_updated_[image_index] = true;
+    global_descriptor_updated_[current_frame] = true;
 
 	// Bind descriptor set
 	vkCmdBindDescriptorSets(command_buffer.get_handle(),
@@ -435,13 +436,14 @@ void MaterialShader::update_global_state(glm::mat4 projection, glm::mat4 view)
 void MaterialShader::update_object(GeometryRenderData data)
 {
 	CommandBuffer &command_buffer = context_->get_command_buffer();
-	auto image_index = context_->get_image_index();
+    auto current_frame = context_->get_current_frame();
+	//auto image_index = context_->get_image_index();
 
 	vkCmdPushConstants(command_buffer.get_handle(), pipeline_.layout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &data.model);
 
 	// Obtain material data
 	MaterialShaderObjectState *object_state = &object_states_[data.object_id];
-	VkDescriptorSet object_descriptor_set = object_state->descriptor_sets[image_index];
+    VkDescriptorSet object_descriptor_set = object_state->descriptor_sets[current_frame];
 
 	// Todo: check if it actually needs to update
 	std::array<VkWriteDescriptorSet, VULKAN_MATERIAL_SHADER_DESCRIPTOR_COUNT> descriptor_writes{};
@@ -459,7 +461,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 	local_uniform_buffer_.load_data(&lbo, offset, range, 0);
 
 	// Only update if the descriptor hasn't already been updated
-	if (object_state->descriptor_states[descriptor_index].generations[image_index] == constant::invalid_id)
+    if (object_state->descriptor_states[descriptor_index].generations[current_frame] == constant::invalid_id)
 	{
 		buffer_infos[descriptor_count] = {};
 		buffer_infos[descriptor_count].buffer = local_uniform_buffer_.get_handle();
@@ -475,7 +477,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 		descriptor_writes[descriptor_count].pBufferInfo = &buffer_infos[descriptor_count];
 
 		descriptor_count++;
-		object_state->descriptor_states[descriptor_index].generations[image_index] = 1;
+        object_state->descriptor_states[descriptor_index].generations[current_frame] = 1;
 	}
 	descriptor_index++;
 
@@ -484,7 +486,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 	for (uint32_t sampler_index = 0; sampler_index < sampler_count; sampler_index++)
 	{
 		const Texture* texture = data.textures[sampler_index];
-		auto& descriptor_generation = object_state->descriptor_states[descriptor_index].generations[image_index];
+        auto &descriptor_generation = object_state->descriptor_states[descriptor_index].generations[current_frame];
 
 		// if (texture == nullptr || texture->get_generation() == constant::invalid_generation)
 		// {
@@ -508,7 +510,7 @@ void MaterialShader::update_object(GeometryRenderData data)
 			descriptor_writes[descriptor_count].pImageInfo = image_infos.data();
 
 			descriptor_count++;
-			object_state->descriptor_states[descriptor_index].generations[image_index] = texture->get_generation();
+            object_state->descriptor_states[descriptor_index].generations[current_frame] = texture->get_generation();
 
 			// If not using default texture, sync the generation.
 			if (texture->get_generation() != constant::invalid_generation) {
