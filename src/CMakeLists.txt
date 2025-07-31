@@ -80,6 +80,10 @@ set(SOURCES
         vulkan/resource/static_texture.cpp
         vulkan/resource/im_gui_texture.hpp
         vulkan/resource/im_gui_texture.cpp
+        vulkan/shader/default/debug_shader.hpp
+        vulkan/shader/default/debug_shader.cpp
+        vulkan/resource/model_manager.hpp
+        vulkan/resource/model_manager.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})

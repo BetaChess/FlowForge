@@ -214,13 +214,10 @@ void Device::create_logical_device()
 	}
 
 	// Request device features.
-	VkPhysicalDeviceFeatures device_features = {};
-	device_features.samplerAnisotropy = VK_TRUE;
-
 	VkDeviceCreateInfo device_create_info = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
 	device_create_info.queueCreateInfoCount = index_count;
 	device_create_info.pQueueCreateInfos = queue_create_infos.data();
-	device_create_info.pEnabledFeatures = &device_features;
+	device_create_info.pEnabledFeatures = &physical_device_requirements_.required_features;
 	device_create_info.enabledExtensionCount = surface_ == nullptr ? 0 : 1;
 	const char *extension_names = nullptr;
 	if (surface_ != nullptr)
@@ -302,6 +299,70 @@ void Device::create_logical_device()
 		FLOWFORGE_INFO("Graphics command pool created");
 	}
 }
+
+bool supports_required_features(VkPhysicalDeviceFeatures required_features, VkPhysicalDeviceFeatures supported_features)
+{
+#define CHECK_FEATURE(f) if (required_features.f && !supported_features.f) return false;
+    // Check if all required features are supported
+    CHECK_FEATURE(robustBufferAccess);
+    CHECK_FEATURE(fullDrawIndexUint32);
+    CHECK_FEATURE(imageCubeArray);
+    CHECK_FEATURE(independentBlend);
+    CHECK_FEATURE(geometryShader);
+    CHECK_FEATURE(tessellationShader);
+    CHECK_FEATURE(sampleRateShading);
+    CHECK_FEATURE(dualSrcBlend);
+    CHECK_FEATURE(logicOp);
+    CHECK_FEATURE(multiDrawIndirect);
+    CHECK_FEATURE(drawIndirectFirstInstance);
+    CHECK_FEATURE(depthClamp);
+    CHECK_FEATURE(depthBiasClamp);
+    CHECK_FEATURE(fillModeNonSolid);
+    CHECK_FEATURE(depthBounds);
+    CHECK_FEATURE(wideLines);
+    CHECK_FEATURE(largePoints);
+    CHECK_FEATURE(alphaToOne);
+    CHECK_FEATURE(multiViewport);
+    CHECK_FEATURE(samplerAnisotropy);
+    CHECK_FEATURE(textureCompressionETC2);
+    CHECK_FEATURE(textureCompressionASTC_LDR);
+    CHECK_FEATURE(textureCompressionBC);
+    CHECK_FEATURE(occlusionQueryPrecise);
+    CHECK_FEATURE(pipelineStatisticsQuery);
+    CHECK_FEATURE(vertexPipelineStoresAndAtomics);
+    CHECK_FEATURE(fragmentStoresAndAtomics);
+    CHECK_FEATURE(shaderTessellationAndGeometryPointSize);
+    CHECK_FEATURE(shaderImageGatherExtended);
+    CHECK_FEATURE(shaderStorageImageExtendedFormats);
+    CHECK_FEATURE(shaderStorageImageMultisample);
+    CHECK_FEATURE(shaderStorageImageReadWithoutFormat);
+    CHECK_FEATURE(shaderStorageImageWriteWithoutFormat);
+    CHECK_FEATURE(shaderUniformBufferArrayDynamicIndexing);
+    CHECK_FEATURE(shaderSampledImageArrayDynamicIndexing);
+    CHECK_FEATURE(shaderStorageBufferArrayDynamicIndexing);
+    CHECK_FEATURE(shaderStorageImageArrayDynamicIndexing);
+    CHECK_FEATURE(shaderClipDistance);
+    CHECK_FEATURE(shaderCullDistance);
+    CHECK_FEATURE(shaderFloat64);
+    CHECK_FEATURE(shaderInt64);
+    CHECK_FEATURE(shaderInt16);
+    CHECK_FEATURE(shaderResourceResidency);
+    CHECK_FEATURE(shaderResourceMinLod);
+    CHECK_FEATURE(sparseBinding);
+    CHECK_FEATURE(sparseResidencyBuffer);
+    CHECK_FEATURE(sparseResidencyImage2D);
+    CHECK_FEATURE(sparseResidencyImage3D);
+    CHECK_FEATURE(sparseResidency2Samples);
+    CHECK_FEATURE(sparseResidency4Samples);
+    CHECK_FEATURE(sparseResidency8Samples);
+    CHECK_FEATURE(sparseResidency16Samples);
+    CHECK_FEATURE(sparseResidencyAliased);
+    CHECK_FEATURE(variableMultisampleRate);
+    CHECK_FEATURE(inheritedQueries);
+
+    return true;
+}
+
 bool Device::is_device_suitable(VkPhysicalDevice device)
 {
 	// Get the device properties
@@ -312,7 +373,8 @@ bool Device::is_device_suitable(VkPhysicalDevice device)
 	VkPhysicalDeviceFeatures deviceFeatures;
 	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-	if (physical_device_requirements_.sampler_anisotropy && deviceFeatures.samplerAnisotropy == VK_FALSE)
+    // Check if any device feature pair has VK_TRUE in requirements and VK_FALSE in deviceFeatures
+	if (!supports_required_features(physical_device_requirements_.required_features, deviceFeatures))
 		return false;
 
 	// Get the device queue families

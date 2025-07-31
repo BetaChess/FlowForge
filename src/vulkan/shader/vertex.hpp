@@ -10,6 +10,23 @@
 namespace flwfrg::vk
 {
 
+struct ColorVertex
+{
+
+    glm::vec3 position{0};
+    alignas(sizeof(glm::vec4)) glm::vec4 color{1};
+
+    static inline std::vector<VkVertexInputAttributeDescription> get_binding_description()
+    {
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+
+        attributeDescriptions.push_back({0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(ColorVertex, position)});
+        attributeDescriptions.push_back({1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(ColorVertex, color)});
+
+        return attributeDescriptions;
+    }
+};
+
 struct Vertex3d
 {
 	glm::vec3 position{0};
@@ -24,7 +41,6 @@ struct Vertex3d
 
 		return attributeDescriptions;
 	}
-
 };
 
 }

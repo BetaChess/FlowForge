@@ -54,7 +54,7 @@ StatusOptional<Pipeline, Status, Status::SUCCESS> Pipeline::create_pipeline(
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = is_wireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
-	rasterizer.lineWidth = 1.0f;
+	rasterizer.lineWidth = 1.5f;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;

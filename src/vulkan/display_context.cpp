@@ -6,12 +6,12 @@
 
 namespace flwfrg::vk
 {
-DisplayContext::DisplayContext(Window *window, bool enable_validation_layers)
+DisplayContext::DisplayContext(Window *window, PhysicalDeviceRequirements requirements, bool enable_validation_layers)
 	: window_{window},
 	  instance_{enable_validation_layers},
 	  debug_messenger_(&instance_),
 	  surface_{&instance_, window_},
-	  device_{&instance_, &surface_, {}},
+	  device_{&instance_, &surface_, requirements},
 	  swapchain_{this}
 {
 	FLOWFORGE_INFO("Creating frame buffers");

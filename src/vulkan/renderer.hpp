@@ -21,7 +21,7 @@ public:
 	};
 
 public:
-	Renderer(uint32_t initial_width, uint32_t initial_height, std::string window_name);
+	Renderer(uint32_t initial_width, uint32_t initial_height, std::string window_name, PhysicalDeviceRequirements requirements = {});
 	~Renderer() = default;
 
 	// Copy

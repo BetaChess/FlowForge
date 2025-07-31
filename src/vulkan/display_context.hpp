@@ -17,7 +17,7 @@ class Renderer;
 class DisplayContext
 {
 public:
-	explicit DisplayContext(Window *window, bool enable_validation_layers = true);
+	explicit DisplayContext(Window *window, PhysicalDeviceRequirements requirements = {}, bool enable_validation_layers = true);
 	~DisplayContext();
 
 	// Copy
