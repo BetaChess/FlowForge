@@ -28,6 +28,7 @@ public:
 
 	[[nodiscard]] inline VkBuffer get_handle() const { return handle_; };
 	[[nodiscard]] inline VkBuffer* ptr() { return handle_.ptr(); };
+    [[nodiscard]] inline uint64_t get_total_size() const { return total_size_; }
 
 	void resize(uint64_t new_size, VkQueue queue, VkCommandPool pool);
 
