@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.26)
 
 project(flowforge_lib)
 
@@ -84,13 +84,16 @@ set(SOURCES
         vulkan/shader/default/debug_shader.cpp
         vulkan/resource/model_manager.hpp
         vulkan/resource/model_manager.cpp
+        vulkan/render_loop.hpp
+        vulkan/vulkan_context.hpp
+        vulkan/vulkan_context.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
 set_target_properties(${PROJECT_NAME}
         PROPERTIES
-        CXX_STANDARD 20
+        CXX_STANDARD 23
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )

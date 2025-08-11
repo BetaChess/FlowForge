@@ -1,7 +1,8 @@
 #include "pch.hpp"
 
-#include "instance.hpp"
+#include "logging/logger.hpp"
 
+#include "instance.hpp"
 #include "debug_messenger.hpp"
 
 #include <stdexcept>
@@ -9,211 +10,318 @@
 
 namespace flwfrg::vk
 {
-Instance::Instance(bool enable_validation_layers)
-	: enable_validation_layers_{enable_validation_layers}
-{
-	FLOWFORGE_INFO("Creating Vulkan instance");
-
-	// Check if the validation layers are enabled and supported.
-	if (enable_validation_layers_ && !validation_layers_supported(validationLayers))
-	{
-		// If they are enabled but not supported, throw a runtime error.
-		throw std::runtime_error("Validation layers requested, but not available! ");
-	}
-
-	// Create the appinfo struct.
-	VkApplicationInfo appInfo{};
-	// Specify the struct as a type application info. (a struct used to give information about the instance).
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	// Set the name
-	appInfo.pApplicationName = "FlowForge";
-	// Specify the application version
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	// A custom engine is used.
-	appInfo.pEngineName = "FlowForge";
-	// Specify the engine version
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	// Specify the vulkan API version.
-	appInfo.apiVersion = VK_API_VERSION_1_0;
-
-	// Create the instance_ create info
-	VkInstanceCreateInfo createInfo{};
-	// Specify that this struct is the info to create the instance.
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	// give it the application info created earlier.
-	createInfo.pApplicationInfo = &appInfo;
-
-	// Get and enable the glfw extensions
-	auto extensions = get_required_extensions(enable_validation_layers_);
-	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());// The number of enabled extensions
-	createInfo.ppEnabledExtensionNames = extensions.data();                     // The names of the actual extensions
-
-	// create a temporary debugger for creation of the Vulkan instance_
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-	// check if validation layers are enabled.
-	if (enable_validation_layers_)
-	{
-		// Specify the enabled validation layers
-		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());// The number of validation layers
-		createInfo.ppEnabledLayerNames = validationLayers.data();                     // The names of the validation layers
-
-		// Use a helper function to populate the createInfo for the debugMessenger.
-		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-										  VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-										  VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-									  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-									  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		debugCreateInfo.pfnUserCallback = DebugMessenger::debugCallback;
-		debugCreateInfo.pUserData = nullptr;// Optional
-
-		// Give the struct the creation info.
-		createInfo.pNext = &debugCreateInfo;
-	} else
-	{
-		// Specify that no layers are enabled (0)
-		createInfo.enabledLayerCount = 0;
-
-		// Give it a nullptr to the creation info.
-		createInfo.pNext = nullptr;
-	}
-
-	// Finally, create the instance_
-	if (vkCreateInstance(&createInfo, nullptr, instance_.ptr()) != VK_SUCCESS)
-	{
-		// If the instance failed to be created, throw a runtime error.
-		throw std::runtime_error("failed to create instance_!");
-	}
-
-	check_glfw_required_instance_extensions(enable_validation_layers_);
-}
+// Instance::Instance(bool enable_validation_layers) : enable_validation_layers_{enable_validation_layers}
+// {
+//     FLOWFORGE_INFO("Creating Vulkan instance");
+//
+//     // Check if the validation layers are enabled and supported.
+//     if (enable_validation_layers_ && !validation_layers_supported(validationLayers))
+//     {
+//         // If they are enabled but not supported, throw a runtime error.
+//         throw std::runtime_error("Validation layers requested, but not available! ");
+//     }
+//
+//     // Create the appinfo struct.
+//     VkApplicationInfo appInfo{};
+//     // Specify the struct as a type application info. (a struct used to give information about the instance).
+//     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+//     // Set the name
+//     appInfo.pApplicationName = "FlowForge";
+//     // Specify the application version
+//     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+//     // A custom engine is used.
+//     appInfo.pEngineName = "FlowForge";
+//     // Specify the engine version
+//     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+//     // Specify the vulkan API version.
+//     appInfo.apiVersion = VK_API_VERSION_1_0;
+//
+//     // Create the instance_ create info
+//     VkInstanceCreateInfo createInfo{};
+//     // Specify that this struct is the info to create the instance.
+//     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+//     // give it the application info created earlier.
+//     createInfo.pApplicationInfo = &appInfo;
+//
+//     // Get and enable the glfw extensions
+//     auto extensions = get_required_extensions(enable_validation_layers_);
+//     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size()); // The number of enabled extensions
+//     createInfo.ppEnabledExtensionNames = extensions.data(); // The names of the actual extensions
+//
+//     // create a temporary debugger for creation of the Vulkan instance_
+//     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+//     // check if validation layers are enabled.
+//     if (enable_validation_layers_)
+//     {
+//         // Specify the enabled validation layers
+//         createInfo.enabledLayerCount =
+//                 static_cast<uint32_t>(validationLayers.size()); // The number of validation layers
+//         createInfo.ppEnabledLayerNames = validationLayers.data(); // The names of the validation layers
+//
+//         // Use a helper function to populate the createInfo for the debugMessenger.
+//         debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+//         debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+//                                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+//                                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+//         debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+//                                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+//                                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+//         debugCreateInfo.pfnUserCallback = DebugMessenger::debugCallback;
+//         debugCreateInfo.pUserData = nullptr; // Optional
+//
+//         // Give the struct the creation info.
+//         createInfo.pNext = &debugCreateInfo;
+//     } else
+//     {
+//         // Specify that no layers are enabled (0)
+//         createInfo.enabledLayerCount = 0;
+//
+//         // Give it a nullptr to the creation info.
+//         createInfo.pNext = nullptr;
+//     }
+//
+//     // Finally, create the instance_
+//     if (vkCreateInstance(&createInfo, nullptr, instance_.ptr()) != VK_SUCCESS)
+//     {
+//         // If the instance failed to be created, throw a runtime error.
+//         throw std::runtime_error("failed to create instance_!");
+//     }
+//
+//     check_glfw_required_instance_extensions(enable_validation_layers_);
+// }
 
 Instance::~Instance()
 {
-	if (instance_.not_null())
-	{
-		vkDestroyInstance(instance_, nullptr);
-		FLOWFORGE_INFO("Vulkan instance destroyed");
-	}
+    if (instance_.not_null())
+    {
+        vkDestroyInstance(instance_, nullptr);
+        FLOWFORGE_INFO("Vulkan instance destroyed");
+    }
+}
+
+std::expected<Instance, Status> Instance::create(CreateInfo create_info)
+{
+    FLOWFORGE_INFO("Creating Vulkan instance");
+
+    // Check for validation layers
+    if (!create_info.validation_layers.empty() && !validation_layers_supported(create_info.validation_layers))
+    {
+        return std::unexpected(Status::LAYER_NOT_PRESENT);
+    }
+
+    VkApplicationInfo appInfo{};
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pApplicationName = create_info.application_name.data();
+    appInfo.applicationVersion =
+            VK_MAKE_API_VERSION(0, create_info.application_major_version, create_info.application_minor_version,
+                                create_info.application_patch_version);
+    appInfo.pEngineName = "FlowForge";
+    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = create_info.vulkan_api_version;
+
+    VkInstanceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo = &appInfo;
+    // auto extensions = get_required_extensions(enable_validation_layers_);
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(create_info.extensions.size());
+    createInfo.ppEnabledExtensionNames = create_info.extensions.data();
+
+    // create a temporary debugger for creation of the Vulkan instance_
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    // check if validation layers are enabled.
+    if (!create_info.validation_layers.empty())
+    {
+        // Specify the enabled validation layers
+        createInfo.enabledLayerCount =
+                static_cast<uint32_t>(create_info.validation_layers.size()); // The number of validation layers
+        createInfo.ppEnabledLayerNames = create_info.validation_layers.data(); // The names of the validation layers
+
+        debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                          VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                      VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                      VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugCreateInfo.pfnUserCallback = DebugMessenger::debugCallback;
+        debugCreateInfo.pUserData = nullptr; // Optional
+
+        createInfo.pNext = &debugCreateInfo;
+    } else
+    {
+        createInfo.enabledLayerCount = 0;
+        createInfo.pNext = nullptr;
+    }
+
+    Instance ret;
+    auto status = vkCreateInstance(&createInfo, nullptr, ret.instance_.ptr());
+
+    // Finally, create the instance_
+    if (status != VK_SUCCESS)
+    {
+        return std::unexpected(vk_result_to_flwfrg_status(status));
+    }
+
+    return ret;
 }
 
 bool Instance::validation_layers_supported(const std::vector<const char *> &layers)
 {
-	// Get the validation layer count
-	uint32_t layerCount;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    // Get the validation layer count
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-	// Create a vector to store the available layers
-	std::vector<VkLayerProperties> availableLayers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    // Create a vector to store the available layers
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-	// print the available layers
-	{
-		std::stringstream ss;
+    // print the available layers
+    {
+        std::stringstream ss;
 
-		ss << "\n available layers:";
+        ss << "\n available layers:";
 
-		for (const auto &layer: availableLayers)
-			ss << "\n\t" << layer.layerName;
+        for (const auto &layer : availableLayers)
+            ss << "\n\t" << layer.layerName;
 
-		FLOWFORGE_TRACE(ss.str());
-	}
+        FLOWFORGE_TRACE(ss.str());
+    }
 
-	// Iterate through each layer name in the list of required layers
-	for (const char *layerName: layers)
-	{
-		bool layerFound = false;
+    // Iterate through each layer name in the list of required layers
+    for (const char *layerName : layers)
+    {
+        bool layerFound = false;
 
-		// Check if the layer is supported by iterating through the supported layers
-		for (const auto &layerProperties: availableLayers)
-		{
-			if (strcmp(layerName, layerProperties.layerName) == 0)
-			{
-				layerFound = true;
-				break;
-			}
-		}
+        // Check if the layer is supported by iterating through the supported layers
+        for (const auto &layerProperties : availableLayers)
+        {
+            if (strcmp(layerName, layerProperties.layerName) == 0)
+            {
+                layerFound = true;
+                break;
+            }
+        }
 
-		// If any layer is not found. Return false.
-		if (!layerFound)
-		{
-			FLOWFORGE_ERROR("Layer was not found during Validation Layer Support checking! Layer name is: {}", layerName);
-			return false;
-		}
-	}
+        // If any layer is not found. Return false.
+        if (!layerFound)
+        {
+            FLOWFORGE_ERROR("Layer was not found during Validation Layer Support checking! Layer name is: {}",
+                            layerName);
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
-std::vector<const char *> Instance::get_required_extensions(bool enable_validation_layers)
+bool Instance::extensions_supported(const std::vector<const char *> &extension_names)
 {
-	// Get the number of extensions required by glfw.
-	uint32_t glfwExtensionCount = 0;
-	const char **glfwExtensions;
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    uint32_t extension_count = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
 
-	// Put them in the vector of required extensions
-	std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    std::vector<VkExtensionProperties> extensions;
+    extensions.resize(extension_count);
+    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
 
-	// If validation layers are enabled. Throw in the Debug Utils extension.
-	if (enable_validation_layers)
-	{
-		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-	}
+    // List out the avaliable extensions and put the names in a string data structure.
+    std::unordered_set<std::string> available;
+    {
+        std::stringstream ss;
+        ss << "\n available extensions:";
+        for (const auto &extension : extensions)
+        {
+            ss << "\n\t" << extension.extensionName;
+            available.insert(extension.extensionName);
+        }
 
-	// Return the vector.
-	return extensions;
+        FLOWFORGE_TRACE(ss.str());
+    }
+
+    {
+        std::stringstream ss;
+        ss << "\n Checking extensions:";
+        for (const auto &required : extension_names)
+        {
+            ss << "\n\t" << required;
+            // If the required extension is not available, throw a runtime error.
+            if (available.find(required) == available.end())
+            {
+                FLOWFORGE_WARN("Missing extension {}", required);
+            }
+        }
+
+        FLOWFORGE_TRACE(ss.str());
+    }
 }
 
-void Instance::check_glfw_required_instance_extensions(bool enable_validation_layers)
-{
-	// Create a variable to store the number of supported extensions
-	uint32_t extensionCount = 0;
+// std::vector<const char *> Instance::get_required_extensions(bool enable_validation_layers)
+// {
+//     // Get the number of extensions required by glfw.
+//     uint32_t glfwExtensionCount = 0;
+//     const char **glfwExtensions;
+//     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+//
+//     // Put them in the vector of required extensions
+//     std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+//
+//     // If validation layers are enabled. Throw in the Debug Utils extension.
+//     if (enable_validation_layers)
+//     {
+//         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+//     }
+//
+//     // Return the vector.
+//     return extensions;
+// }
+//
+// void Instance::check_glfw_required_instance_extensions(bool enable_validation_layers)
+// {
+//     // Create a variable to store the number of supported extensions
+//     uint32_t extensionCount = 0;
+//
+//     // Get the number of avaliable extensions. (The middle parameter of the function writes this to the specified memory location)
+//     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+//     // Change the size of the extensions vetor to match the number of avaliable extensions.
+//     std::vector<VkExtensionProperties> extensions(extensionCount);
+//     // Write the extensions to the vector.
+//     // (the last parameter is a memory location to the place the extension properties should be written,
+//     //		in this case, the data location of the vector)
+//     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+//
+//     // List out the avaliable extensions and put the names in a string data structure.
+//     std::unordered_set<std::string> available;
+//     {
+//         std::stringstream ss;
+//         ss << "\n available extensions:";
+//         for (const auto &extension : extensions)
+//         {
+//             ss << "\n\t" << extension.extensionName;
+//             available.insert(extension.extensionName);
+//         }
+//
+//         FLOWFORGE_TRACE(ss.str());
+//     }
+//
+//     {
+//         std::stringstream ss;
+//         // List out the required extensions.
+//         ss << "\n required extensions:";
+//         // Get the required extensions.
+//         auto requiredExtensions = get_required_extensions(enable_validation_layers);
+//         // Iterate through the required extensions.
+//         for (const auto &required : requiredExtensions)
+//         {
+//             ss << "\n\t" << required;
+//             // If the required extension is not available, throw a runtime error.
+//             if (available.find(required) == available.end())
+//             {
+//                 FLOWFORGE_FATAL("Missing required glfw extension ({})", required);
+//                 throw std::runtime_error("Missing required glfw extension");
+//             }
+//         }
+//
+//         FLOWFORGE_TRACE(ss.str());
+//     }
+// }
 
-	// Get the number of avaliable extensions. (The middle parameter of the function writes this to the specified memory location)
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-	// Change the size of the extensions vetor to match the number of avaliable extensions.
-	std::vector<VkExtensionProperties> extensions(extensionCount);
-	// Write the extensions to the vector.
-	// (the last parameter is a memory location to the place the extension properties should be written,
-	//		in this case, the data location of the vector)
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-	// List out the avaliable extensions and put the names in a string data structure.
-	std::unordered_set<std::string> available;
-	{
-		std::stringstream ss;
-		ss << "\n available extensions:";
-		for (const auto &extension: extensions)
-		{
-			ss << "\n\t" << extension.extensionName;
-			available.insert(extension.extensionName);
-		}
-
-		FLOWFORGE_TRACE(ss.str());
-	}
-
-	{
-		std::stringstream ss;
-		// List out the required extensions.
-		ss << "\n required extensions:";
-		// Get the required extensions.
-		auto requiredExtensions = get_required_extensions(enable_validation_layers);
-		// Iterate through the required extensions.
-		for (const auto &required: requiredExtensions)
-		{
-			ss << "\n\t" << required;
-			// If the required extension is not available, throw a runtime error.
-			if (available.find(required) == available.end())
-			{
-				FLOWFORGE_FATAL("Missing required glfw extension ({})", required);
-				throw std::runtime_error("Missing required glfw extension");
-			}
-		}
-
-		FLOWFORGE_TRACE(ss.str());
-	}
-}
-
-}// namespace flwfrg::vk
+} // namespace flwfrg::vk

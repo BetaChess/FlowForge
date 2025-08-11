@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(imgui_demo)
+project(multiwindow_demo)
 
 set(SOURCES
         main.cpp
@@ -16,13 +16,23 @@ set_target_properties(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME}
-        PUBLIC ../../src/
+        PUBLIC ${FLOWFORGELIB_PATH}/src/
 )
 
 target_link_directories(${PROJECT_NAME}
-        PRIVATE ../../src/
+        PRIVATE ${FLOWFORGELIB_PATH}/src/
 )
 
 target_link_libraries(${PROJECT_NAME}
         flowforge_lib
 )
+
+
+############## Build shaders ##############
+
+add_shaders(${PROJECT_NAME}_shaders
+        ${FLOWFORGELIB_PATH}/assets/shaders/default_debug_shader.vert
+        ${FLOWFORGELIB_PATH}/assets/shaders/default_debug_shader.frag
+)
+
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_shaders)

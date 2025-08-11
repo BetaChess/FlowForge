@@ -1,5 +1,7 @@
 #pragma once
+
 #include "util/handle.hpp"
+#include "util/status_optional.hpp"
 
 namespace flwfrg::vk
 {
@@ -9,7 +11,6 @@ class DebugMessenger
 {
 public:
 	DebugMessenger() = default;
-	explicit DebugMessenger(Instance* instance);
 	~DebugMessenger();
 
 	// Copy
@@ -18,6 +19,9 @@ public:
 	// Move
 	DebugMessenger(DebugMessenger &&other) noexcept = default;
 	DebugMessenger &operator=(DebugMessenger &&other) noexcept = default;
+
+
+    static std::expected<DebugMessenger, Status> create(VkInstance instance);
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -37,7 +41,7 @@ public:
 			const VkAllocationCallbacks *pAllocator);
 
 private:
-	Instance* instance_ = nullptr;
+	Handle<VkInstance> instance_;
 
 	Handle<VkDebugUtilsMessengerEXT> handle_;
 };
